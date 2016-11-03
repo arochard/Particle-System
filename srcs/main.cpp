@@ -1,9 +1,9 @@
 #include "../includes/PartSystem.hpp"
+#include "../includes/Exception.hpp"
 
 int					main(int ac, char const *av[])
 {
-	// PartSystem		ps;
-	int 			nbPart;
+	unsigned int	nbPart;
 
 	try
 	{
@@ -17,6 +17,7 @@ int					main(int ac, char const *av[])
 				else
 					nbPart = (s[0] - '0') * 1000000;
 				std::cout << nbPart << std::endl;
+				PartSystem *ps = new PartSystem(nbPart);
 			}
 			else
 				throw Exception("Usage: ./ParticleSystem [1-9][m || M]");

@@ -1,19 +1,20 @@
 #ifndef PART_SYSTEM_HPP
 # define PART_SYSTEM_HPP
 
-# include <string>
-# include <iostream>
-# include <sstream>
-# include <cctype>
+
+
 # include "glew.h"
 # include "glfw3.h"
-# include "Cl.hpp"
-# include "Exception.hpp"
+# include "BaseCl.hpp"
 
 class PartSystem
 {
+	private:
+		unsigned int 		_nbPart;
+		BaseCl				*_base_cl;
+
 	public:
-		PartSystem();
+		PartSystem(unsigned int nbPart);
 		~PartSystem();
 	
 };
