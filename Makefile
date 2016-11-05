@@ -1,29 +1,42 @@
-NAME = ParticleSystem
+NAME := ParticleSystem
 
-CC = clang++ -Wall -Wextra -Werror -std=c++11
-LIB_PATH = Library/glfw/
-LOC_LIB = $(LIB_PATH)libGLEW.a $(LIB_PATH)libglfw3.a
-FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit -framework Opencl
+CC := clang++ 
+CFLAGS := -c -std=c++11 -stdlib=libc++ -Wall -Wextra 
+#-Werror
 
-SRC_DIR = srcs
+LIB_PATH := Library/glfw/
+LOC_LIB := $(LIB_PATH)libGLEW.a $(LIB_PATH)libglfw3.a
 
-SRC := $(wildcard $(SRC_DIR)/*.cpp)
-OBJ = $(SRC:.cpp=.o)
+FRAMEWORKS := -framework Cocoa -framework OpenGL -framework IOKit -framework Opencl
 
-%.o: %.c
-		$(CC) -o $@  -c $<
+SRC_DIR := srcs
+INC_DIRS := $(shell find includes/* -name '*.hpp' -exec dirname {} \; | sort | uniq)
+BUILD_DIR := build
+
+SRCEXT := cpp
+SOURCES := $(shell find $(SRC_DIR) -type f -name *.$(SRCEXT))
+OBJECTS := $(patsubst $(SRC_DIR)/%,$(BUILD_DIR)/%,$(SOURCES:.$(SRCEXT)=.o))
+INCLIST := $(patsubst includes/%,-I includes/%,$(INC_DIR))
+
+INC := -I include $(INCLIST)
 
 all: $(NAME)
 
-$(NAME):$(OBJ)
-		$(CC) $(FRAMEWORKS) $(LOC_LIB) -o $@ $^
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.$(SRCEXT)
+		@mkdir -p $(BUILD_DIR)
+		@echo "$(CC) $(CFLAGS) $(INC) -c -o $@ $<"; $(CC) $(CFLAGS) $(INC) -c -o $@ $<
+
+$(NAME):$(OBJECTS)
+		@echo "Linking..."
+		@echo "		$(CC) $^ -o $(TARGET) $(LIB)"; $(CC) $^ -o $(NAME) $(LOC_LIB) $(FRAMEWORKS)
 		@echo "\033[0;32m$(NAME) : Compilation successful !! \033[0;32m"
 
 clean:
-		@rm $(OBJ)
+		@echo "Cleaning...";
+		@echo "		$(RM) -r $(BUILD_DIR) $(TARGET)"; $(RM) -r $(BUILD_DIR)
 
 fclean: clean
-		@rm $(NAME)
+		@echo "		$(RM) -r $(NAME)"; $(RM) $(NAME)
 
 re: fclean all
 

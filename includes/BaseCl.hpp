@@ -13,10 +13,15 @@
 class BaseCl
 {
 	private:
-		cl::Platform	_chosen_platform;
-		cl::Device		_chosen_device;
+		cl::Platform		_chosen_platform;
+		cl::Device			_chosen_device;
+		cl::Program 		_program;
+		cl::Kernel 			_kernel;
+		const std::string	_kernel_source;
 
-		void			device_select();
+		void				platform_select();
+		void				program_create();
+		void				device_select();
 
 	public:
 		BaseCl();

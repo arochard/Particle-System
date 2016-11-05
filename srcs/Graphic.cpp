@@ -62,6 +62,7 @@ void			Graphic::init_window(int width, int height)
 	}
 	glfwMakeContextCurrent(this->_win_ptr);
 	glewExperimental = GL_TRUE;
+	glfwSwapInterval(0);
 	glewInit();
 }
 
