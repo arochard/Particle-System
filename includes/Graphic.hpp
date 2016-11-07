@@ -3,24 +3,32 @@
 
 # include <iostream>
 # include <fstream>
+# include <vector>
 # include "glew.h"
 # include "glfw3.h"
 # include "Exception.hpp"
 
+# define VERTICE_VBO 0
+# define POSITION_VBO 1
+# define COLOR_VBO 2
+
 class Graphic
 {
 	private:
-		GLuint		_programm_shader;
-		GLFWwindow	*_win_ptr;
+		GLuint			_programm_shader;
+		GLuint 			_vao;
+		GLFWwindow		*_win_ptr;
 
-		void		init_window(int width, int height);
-		void		create_shader();
-		void 		update_fps_counter();
+		void			init_window(int width, int height);
+		void			create_shader();
+		void 			update_fps_counter();
 	public:
 		Graphic(int width, int height);
 		~Graphic();
 
-		void 		main_loop();
+		void			create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart);
+		void			draw_loop(unsigned int nbPart);
+
 	
 };
 

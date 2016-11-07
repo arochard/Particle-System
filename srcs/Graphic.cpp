@@ -1,12 +1,55 @@
 #include "../includes/Graphic.hpp"
 
-Graphic::Graphic(int width, int height)
-{
-	this->init_window(width, height);
-	this->create_shader();
-}
+//PRIVATE
 
-Graphic::~Graphic(){}
+void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
+{
+	GLuint		tmp;
+	const GLfloat vertex_data[] = {
+		0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f,
+		0.5f, 0.5f, 0.0f,
+	};
+
+	glGenVertexArrays(1, &(this->_vao));
+	glBindVertexArray(this->_vao);
+
+	//Coord vertice, same for all
+	glGenBuffers(1, &tmp);
+	vbos->push_back(tmp);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
+	//Position particle, different for each object
+	glGenBuffers(1, &tmp);
+	vbos->push_back(tmp);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
+	//Color paticle, different for each object
+	glGenBuffers(1, &tmp);
+	vbos->push_back(tmp);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLubyte) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
+
+	//Enable different attribut
+	//Vertice coord attrib
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	//Position attrib
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	//Color attrib
+	glEnableVertexAttribArray(2);
+	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0);
+
+	//Attrib divisor
+	glVertexAttribDivisor(0, 0);
+	glVertexAttribDivisor(1, 1);
+	glVertexAttribDivisor(2, 1);
+}
 
 void			Graphic::create_shader()
 {
@@ -86,7 +129,8 @@ void			Graphic::update_fps_counter()
 	frame_count++;
 }
 
-void 			Graphic::main_loop()
+
+void 			Graphic::draw_loop(unsigned int nbPart)
 {
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
@@ -94,5 +138,16 @@ void 			Graphic::main_loop()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwSwapBuffers(this->_win_ptr);
 		glfwPollEvents();
+		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
 	}
 }
+
+//PUBLIC
+
+Graphic::Graphic(int width, int height)
+{
+	this->init_window(width, height);
+	this->create_shader();
+}
+
+Graphic::~Graphic(){}

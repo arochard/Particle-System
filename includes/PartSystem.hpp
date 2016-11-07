@@ -11,12 +11,16 @@ class PartSystem
 {
 	private:
 		unsigned int 		_nbPart;
+		std::vector<GLuint> _vbos;
 		BaseCl				*_base_cl;
 		Graphic				*_graphic;
+		// cl::CommandQueue 	_queue;
 
 	public:
 		PartSystem(unsigned int nbPart);
 		~PartSystem();
+
+		void		main_loop();
 	
 };
 

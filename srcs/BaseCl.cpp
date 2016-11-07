@@ -1,5 +1,6 @@
 #include "../includes/BaseCl.hpp"
 
+//PUBLIC
 BaseCl::BaseCl()
 {
 	this->platform_select();
@@ -9,6 +10,42 @@ BaseCl::BaseCl()
 
 BaseCl::~BaseCl(){}
 
+void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
+{
+	cl_int	err;
+
+	// glFinish();
+	//Debug
+	std::cout << "Opengl interop" << std::endl;
+	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[VERTICE_VBO], &err));
+	//Debug
+	std::cout << err << std::endl;
+	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[POSITION_VBO], &err));
+	//Debug
+	std::cout << err << std::endl;
+	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[COLOR_VBO], &err));
+	//Debug
+	std::cout << err << std::endl;
+
+	this->_cl_velocity = cl::Buffer(this->_context, CL_MEM_READ_WRITE, 4 * sizeof(float) * nbPart, NULL, &err);
+	//debug
+	std::cout << err << std::endl;
+	this->_queue = cl::CommandQueue(this->_context, this->_chosen_device, 0, &err);
+	//debug
+	std::cout << err << std::endl;
+	err = this->_queue.enqueueWriteBuffer(this->_cl_velocity, CL_TRUE, 0, 4 * sizeof(float) * nbPart, 0, NULL, &(this->_event));
+	this->_queue.finish();
+
+	this->set_kernel_args();
+}
+
+
+//PRIVATE
+
+void		BaseCl::set_kernel_args()
+{
+
+}
 
 void		BaseCl::device_select()
 {
@@ -50,15 +87,17 @@ void		BaseCl::platform_select()
 void		BaseCl::program_create()
 {
 	std::vector<cl::Device> device_vector = {this->_chosen_device};
-	cl::Context 			context(device_vector);
+	this->_context = cl::Context(device_vector);
 	cl::Program::Sources	sources = {{this->_kernel_source.c_str(), this->_kernel_source.length()}};
 
-	this->_program = cl::Program(context, sources);
+	this->_program = cl::Program(this->_context, sources);
 	if (this->_program.build(device_vector) != CL_SUCCESS)
 	{
 		std::cerr << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->_chosen_device) << std::endl;
 		throw Exception("Error building program");
 	}
 
-	this->_kernel = cl::Kernel(this->_program, "myKernel");
+	this->_kernel[0] = cl::Kernel(this->_program, "update_position");
+	this->_kernel[1] = cl::Kernel(this->_program, "position_begin");
+
 }
