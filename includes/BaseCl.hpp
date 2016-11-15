@@ -1,6 +1,6 @@
 #ifndef BASE_CL_HPP
 # define BASE_CL_HPP
-
+#define __CL_ENABLE_EXCEPTIONS
 # include <string>
 # include <iostream>
 # include <sstream>
@@ -32,7 +32,7 @@ class BaseCl
 		void					platform_select();
 		void					program_create();
 		void					device_select();
-		void					set_kernel_args();
+		void					set_kernel_args(unsigned int nbPart);
 
 	public:
 		BaseCl();

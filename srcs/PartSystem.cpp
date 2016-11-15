@@ -16,5 +16,6 @@ PartSystem::~PartSystem(){}
 
 void			PartSystem::main_loop()
 {
+	std::cout << "Main loop" << std::endl;
 	this->_graphic->draw_loop(this->_nbPart);
 }

@@ -17,9 +17,8 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	// glFinish();
 	//Debug
 	std::cout << "Opengl interop" << std::endl;
-	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[VERTICE_VBO], &err));
+	// this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[VERTICE_VBO], &err));
 	//Debug
-	std::cout << err << std::endl;
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[POSITION_VBO], &err));
 	//Debug
 	std::cout << err << std::endl;
@@ -36,15 +35,37 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	err = this->_queue.enqueueWriteBuffer(this->_cl_velocity, CL_TRUE, 0, 4 * sizeof(float) * nbPart, 0, NULL, &(this->_event));
 	this->_queue.finish();
 
-	this->set_kernel_args();
+	this->set_kernel_args(nbPart);
 }
 
 
 //PRIVATE
 
-void		BaseCl::set_kernel_args()
+void		BaseCl::set_kernel_args(unsigned int nbPart)
 {
+	cl_int 		err;
+	float		pad = 0.5f / nbPart;
+	std::vector<float> mouse = {0.0f, 0.0f};
 
+	try
+	{
+		//update position
+		err = this->_kernel[0].setArg(0, this->_cl_vbos[CL_POS_VBO]);
+		err = this->_kernel[0].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);
+		err = this->_kernel[0].setArg(2, this->_cl_velocity);
+		err = this->_kernel[0].setArg(3, &mouse);
+		//postition begin
+		err = this->_kernel[1].setArg(0, this->_cl_vbos[CL_POS_VBO]);
+		err = this->_kernel[1].setArg(1, this->_cl_velocity);
+		err = this->_kernel[1].setArg(2, &pad);
+
+	}
+	catch (cl::Error er)
+	{
+		throw Exception(er.what());
+	}
+
+	this->_queue.finish();
 }
 
 void		BaseCl::device_select()
@@ -96,8 +117,14 @@ void		BaseCl::program_create()
 		std::cerr << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->_chosen_device) << std::endl;
 		throw Exception("Error building program");
 	}
-
-	this->_kernel[0] = cl::Kernel(this->_program, "update_position");
-	this->_kernel[1] = cl::Kernel(this->_program, "position_begin");
+	try
+	{
+		this->_kernel[0] = cl::Kernel(this->_program, "update_position");
+		this->_kernel[1] = cl::Kernel(this->_program, "position_begin");
+	}
+	catch (cl::Error er)
+	{
+		throw Exception(er.what());
+	}
 
 }
