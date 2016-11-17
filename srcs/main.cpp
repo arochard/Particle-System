@@ -1,5 +1,8 @@
+#include <iostream>
+#include <string>
 #include "../includes/PartSystem.hpp"
 #include "../includes/Exception.hpp"
+#include "../includes/utils.hpp"
 
 int					main(int ac, char const *av[])
 {
@@ -17,8 +20,10 @@ int					main(int ac, char const *av[])
 				else
 					nbPart = (s[0] - '0') * 1000000;
 				std::cout << nbPart << std::endl;
-				PartSystem *ps = new PartSystem(nbPart);
-				ps->main_loop();
+				// PartSystem *ps = new PartSystem(nbPart);
+				// ps->main_loop();
+				std::string str = read_file("../Kernel_prog/myKernel.cl");
+				// std::cout << str.length() << std::endl;
 			}
 			else
 				throw Exception("Usage: ./ParticleSystem [1-9][m || M]");

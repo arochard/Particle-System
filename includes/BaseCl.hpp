@@ -1,17 +1,14 @@
 #ifndef BASE_CL_HPP
 # define BASE_CL_HPP
 #define __CL_ENABLE_EXCEPTIONS
-# include <string>
-# include <iostream>
-# include <sstream>
-# include <cctype>
-# include "Graphic.hpp"
+
 # include "cl.hpp"
-# include "Exception.hpp"
 
 # define CL_POS_VBO 0
 # define CL_COLOR_VBO 1
 
+# define UPDATE_KERNEL 0
+# define BEGIN_KERNEL 1
 
 
 class BaseCl
@@ -27,6 +24,7 @@ class BaseCl
 		std::vector<cl::Memory>	_cl_vbos;
 		cl::CommandQueue 		_queue;
 		cl::Event 				_event;
+		unsigned int			_numPart;
 		
 
 		void					platform_select();
@@ -39,7 +37,8 @@ class BaseCl
 		~BaseCl();
 
 		void 					create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart);
-		// void 					create_queue(cl::CommandQueue *queue);
+		void 					update_position_kernel();
+		void					begin_kernel();
 	
 };
 

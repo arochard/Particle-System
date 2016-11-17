@@ -1,7 +1,7 @@
 NAME := ParticleSystem
 
 CC := clang++ 
-CFLAGS := -c -std=c++11 -stdlib=libc++ -Wall -Wextra 
+CFLAGS := -c -std=c++11 -Wall -Wextra 
 #-Werror
 
 LIB_PATH := Library/glfw/

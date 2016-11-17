@@ -7,7 +7,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 
 }
 
-__kernel void position_begin(__global float4 *pos, __global float4 *vel, __global const float pad)
+__kernel void position_begin(__global float4 *pos, __global float4 *vel, __global const float *pad)
 {
 	unsigned int i = get_global_id(0);
 

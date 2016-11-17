@@ -1,12 +1,11 @@
 #ifndef GRAPHIC_HPP
 # define GRAPHIC_HPP
 
-# include <iostream>
-# include <fstream>
 # include <vector>
 # include "glew.h"
 # include "glfw3.h"
-# include "Exception.hpp"
+
+# include "BaseCl.hpp"
 
 # define VERTICE_VBO 0
 # define POSITION_VBO 1
@@ -27,7 +26,7 @@ class Graphic
 		~Graphic();
 
 		void			create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart);
-		void			draw_loop(unsigned int nbPart);
+		void			draw_loop(unsigned int nbPart, BaseCl *cl);
 
 	
 };

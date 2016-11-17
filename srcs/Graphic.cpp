@@ -1,4 +1,7 @@
+#include <iostream>
+#include <fstream>
 #include "../includes/Graphic.hpp"
+#include "../includes/Exception.hpp"
 
 //PRIVATE
 
@@ -130,7 +133,7 @@ void			Graphic::update_fps_counter()
 }
 
 
-void 			Graphic::draw_loop(unsigned int nbPart)
+void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 {
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
@@ -139,6 +142,7 @@ void 			Graphic::draw_loop(unsigned int nbPart)
 		glfwSwapBuffers(this->_win_ptr);
 		glfwPollEvents();
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
+		cl->update_position_kernel();
 	}
 }
 

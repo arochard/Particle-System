@@ -1,4 +1,12 @@
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cctype>
+#include "../includes/Graphic.hpp"
 #include "../includes/BaseCl.hpp"
+#include "../includes/Exception.hpp"
+#include "../includes/utils.hpp"
 
 //PUBLIC
 BaseCl::BaseCl()
@@ -14,7 +22,9 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 {
 	cl_int	err;
 
-	// glFinish();
+	this->_numPart = nbPart;
+
+	glFinish();
 	//Debug
 	std::cout << "Opengl interop" << std::endl;
 	// this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[VERTICE_VBO], &err));
@@ -36,6 +46,26 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	this->_queue.finish();
 
 	this->set_kernel_args(nbPart);
+}
+
+void 		BaseCl::update_position_kernel()
+{
+	glFinish();
+}
+
+void		BaseCl::begin_kernel()
+{
+	glFinish();
+
+	this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+	this->_queue.finish();
+
+	this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
+	this->_queue.finish();
+
+	this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+	this->_queue.finish();
+
 }
 
 
@@ -107,24 +137,30 @@ void		BaseCl::platform_select()
 
 void		BaseCl::program_create()
 {
+	std::string		str = read_file("../sgg");
+	
 	std::vector<cl::Device> device_vector = {this->_chosen_device};
 	this->_context = cl::Context(device_vector);
-	cl::Program::Sources	sources = {{this->_kernel_source.c_str(), this->_kernel_source.length()}};
-
-	this->_program = cl::Program(this->_context, sources);
-	if (this->_program.build(device_vector) != CL_SUCCESS)
-	{
-		std::cerr << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->_chosen_device) << std::endl;
-		throw Exception("Error building program");
-	}
+	std::cout << this->_kernel_source << std::endl;
+	cl::Program::Sources	sources = {{str.c_str(), str.length()}};
+	std::cout << str << std::endl;
 	try
 	{
+		this->_program = cl::Program(this->_context, sources);
+		this->_program.build(device_vector, "-cl-std=CL1.2");
 		this->_kernel[0] = cl::Kernel(this->_program, "update_position");
 		this->_kernel[1] = cl::Kernel(this->_program, "position_begin");
 	}
 	catch (cl::Error er)
 	{
-		throw Exception(er.what());
+		std::cout << er.err() << std::endl;
+		std::cerr << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->_chosen_device) << std::endl;
+		throw Exception(er.what() + er.err());
 	}
 
+	//Debug
+	std::cout << "Status" << std::endl;
+	// std::cout << "Build Status: " << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(devices[0]) << std::endl;
+	// std::cout << "Build Options:\t" << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(devices[0]) << std::endl;
+	// std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
 }
