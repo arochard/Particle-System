@@ -7,8 +7,8 @@
 PartSystem::PartSystem(unsigned int nbPart): _nbPart(nbPart)
 {
 	this->_graphic = new Graphic(WIDTH, HEIGHT);
-	this->_graphic->create_vbo(&(this->_vbos), nbPart);
 	this->_base_cl = new BaseCl();
+	this->_graphic->create_vbo(&(this->_vbos), nbPart);
 	this->_base_cl->create_buffer(&(this->_vbos), nbPart);
 }
 

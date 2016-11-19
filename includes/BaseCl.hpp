@@ -2,6 +2,8 @@
 # define BASE_CL_HPP
 #define __CL_ENABLE_EXCEPTIONS
 
+# include <OpenCL/opencl.h>
+# include <OpenGL/OpenGL.h>
 # include "cl.hpp"
 
 # define CL_POS_VBO 0
@@ -31,6 +33,7 @@ class BaseCl
 		void					program_create();
 		void					device_select();
 		void					set_kernel_args(unsigned int nbPart);
+		void 					create_context(std::vector<cl::Device> *device);
 
 	public:
 		BaseCl();

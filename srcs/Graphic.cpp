@@ -2,6 +2,7 @@
 #include <fstream>
 #include "../includes/Graphic.hpp"
 #include "../includes/Exception.hpp"
+#include "../includes/utils.hpp"
 
 //PRIVATE
 
@@ -61,26 +62,16 @@ void			Graphic::create_shader()
 	std::string		str;
 	const char 		*cstr;
 
-	std::ifstream	vs_file("../Shaders/VertexShader.vs");
-	vs_file >> str;
+	str = read_file("Shaders/VertexShader.vs");
 	cstr = str.c_str();
 	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &(cstr), NULL);
-
-	//Debug
-	std::cout << "Vertex Shader : " << str << std::endl;
-
 	str.clear();
 	glCompileShader(vs);
-	std::ifstream	fs_file("../Shaders/FragmentShader.fs");
-	fs_file >> str;
+	str = read_file("Shaders/FragmentShader.fs");
 	cstr = str.c_str();
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &(cstr), NULL);
-
-	//Debug
-	std::cout << "Frag Shader : " << str << std::endl;
-
 	glCompileShader(fs);
 	this->_programm_shader = glCreateProgram();
 	glAttachShader(this->_programm_shader, fs);
@@ -139,10 +130,14 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 	{
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glfwSwapBuffers(this->_win_ptr);
 		glfwPollEvents();
+		glUseProgram(this->_programm_shader);
+		glBindVertexArray(this->_vao);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
+		glBindVertexArray(0);
 		cl->update_position_kernel();
+		glfwSwapBuffers(this->_win_ptr);
+		glUseProgram(0);
 	}
 }
 

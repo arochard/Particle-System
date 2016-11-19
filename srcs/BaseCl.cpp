@@ -27,24 +27,11 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glFinish();
 	//Debug
 	std::cout << "Opengl interop" << std::endl;
-	// this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[VERTICE_VBO], &err));
-	//Debug
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[POSITION_VBO], &err));
-	//Debug
-	std::cout << err << std::endl;
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[COLOR_VBO], &err));
-	//Debug
-	std::cout << err << std::endl;
-
 	this->_cl_velocity = cl::Buffer(this->_context, CL_MEM_READ_WRITE, 4 * sizeof(float) * nbPart, NULL, &err);
-	//debug
-	std::cout << err << std::endl;
 	this->_queue = cl::CommandQueue(this->_context, this->_chosen_device, 0, &err);
-	//debug
-	std::cout << err << std::endl;
-	err = this->_queue.enqueueWriteBuffer(this->_cl_velocity, CL_TRUE, 0, 4 * sizeof(float) * nbPart, 0, NULL, &(this->_event));
 	this->_queue.finish();
-
 	this->set_kernel_args(nbPart);
 }
 
@@ -55,6 +42,8 @@ void 		BaseCl::update_position_kernel()
 
 void		BaseCl::begin_kernel()
 {
+	try
+	{
 	glFinish();
 
 	this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
@@ -64,12 +53,39 @@ void		BaseCl::begin_kernel()
 	this->_queue.finish();
 
 	this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
-	this->_queue.finish();
+	std::cout << "srg" << std::endl;
+	// this->_queue.finish();
+	}
+	catch (cl::Error er)
+	{
+		std::cout << er.err() << std::endl;
+		throw Exception(er.what() + er.err());
+	}
 
 }
 
 
 //PRIVATE
+
+void 		BaseCl::create_context(std::vector<cl::Device> *device)
+{
+	CGLContextObj kCGLContext = CGLGetCurrentContext();
+	CGLShareGroupObj kCGLShareGroup = CGLGetShareGroup(kCGLContext);
+	cl_context_properties props[] =
+	{
+		CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE, (cl_context_properties)kCGLShareGroup,
+		0
+	};
+
+	try
+	{
+		this->_context = cl::Context(*device, props);
+	}
+	catch (cl::Error er)
+	{
+		throw Exception(er.what() + er.err());
+	}
+}
 
 void		BaseCl::set_kernel_args(unsigned int nbPart)
 {
@@ -77,24 +93,16 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	float		pad = 0.5f / nbPart;
 	std::vector<float> mouse = {0.0f, 0.0f};
 
-	try
-	{
-		//update position
-		err = this->_kernel[0].setArg(0, this->_cl_vbos[CL_POS_VBO]);
-		err = this->_kernel[0].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);
-		err = this->_kernel[0].setArg(2, this->_cl_velocity);
-		err = this->_kernel[0].setArg(3, &mouse);
-		//postition begin
-		err = this->_kernel[1].setArg(0, this->_cl_vbos[CL_POS_VBO]);
-		err = this->_kernel[1].setArg(1, this->_cl_velocity);
-		err = this->_kernel[1].setArg(2, &pad);
-
-	}
-	catch (cl::Error er)
-	{
-		throw Exception(er.what());
-	}
-
+	//update position
+	err = this->_kernel[0].setArg(0, this->_cl_vbos[CL_POS_VBO]);
+	err = this->_kernel[0].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);
+	err = this->_kernel[0].setArg(2, this->_cl_velocity);
+	err = this->_kernel[0].setArg(3, sizeof(cl_float2), &mouse);
+	//postition begin
+	err = this->_kernel[1].setArg(0, this->_cl_vbos[CL_POS_VBO]);
+	err = this->_kernel[1].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);
+	err = this->_kernel[1].setArg(2, this->_cl_velocity);
+	err = this->_kernel[1].setArg(3, sizeof(float), &pad);
 	this->_queue.finish();
 }
 
@@ -137,19 +145,20 @@ void		BaseCl::platform_select()
 
 void		BaseCl::program_create()
 {
-	std::string		str = read_file("../sgg");
-	
+	std::string		str = read_file("Kernel_prog/myKernel.cl");
 	std::vector<cl::Device> device_vector = {this->_chosen_device};
-	this->_context = cl::Context(device_vector);
-	std::cout << this->_kernel_source << std::endl;
+
+	this->create_context(&device_vector);
 	cl::Program::Sources	sources = {{str.c_str(), str.length()}};
-	std::cout << str << std::endl;
 	try
 	{
+		cl_int err;
 		this->_program = cl::Program(this->_context, sources);
 		this->_program.build(device_vector, "-cl-std=CL1.2");
-		this->_kernel[0] = cl::Kernel(this->_program, "update_position");
-		this->_kernel[1] = cl::Kernel(this->_program, "position_begin");
+		this->_kernel[0] = cl::Kernel(this->_program, "update_position", &err);
+		this->_kernel[1] = cl::Kernel(this->_program, "position_begin", &err);
+		//DEBUG
+		std::cout << this->_kernel[1].getInfo<CL_KERNEL_REFERENCE_COUNT>() << std::endl;
 	}
 	catch (cl::Error er)
 	{
@@ -160,7 +169,7 @@ void		BaseCl::program_create()
 
 	//Debug
 	std::cout << "Status" << std::endl;
-	// std::cout << "Build Status: " << program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(devices[0]) << std::endl;
-	// std::cout << "Build Options:\t" << program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(devices[0]) << std::endl;
-	// std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0]) << std::endl;
+	std::cout << "Build Status: " << this->_program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(device_vector[0]) << std::endl;
+	std::cout << "Build Options:\t" << this->_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(device_vector[0]) << std::endl;
+	std::cout << "Build Log:\t " << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device_vector[0]) << std::endl;
 }
