@@ -15,7 +15,6 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	float4 v = float4(0.0f);
 	float4 c = float4(1.0f, 0.0f, 0.0f, 1.0f);
 
-
 	p.x += i * pad;
 	p.y += i * pad;
 

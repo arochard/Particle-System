@@ -62,6 +62,7 @@ void			Graphic::create_shader()
 	std::string		str;
 	const char 		*cstr;
 
+std::cout << glGetError() << std::endl;
 	str = read_file("Shaders/VertexShader.vs");
 	cstr = str.c_str();
 	vs = glCreateShader(GL_VERTEX_SHADER);
@@ -80,6 +81,7 @@ void			Graphic::create_shader()
 	glDeleteShader(fs);
 	glLinkProgram(this->_programm_shader);
 	glUseProgram(0);
+	std::cout << glGetError() << std::endl;
 }
 
 void			Graphic::init_window(int width, int height)
@@ -101,6 +103,7 @@ void			Graphic::init_window(int width, int height)
 	glewExperimental = GL_TRUE;
 	glfwSwapInterval(0);
 	glewInit();
+	glViewport(0, 0, width, height);
 }
 
 void			Graphic::update_fps_counter()
@@ -126,19 +129,30 @@ void			Graphic::update_fps_counter()
 
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 {
-	while (!glfwWindowShouldClose(this->_win_ptr))
-	{
+	GLsizei 	l;
+	GLchar 		str[2048];
+	std::cout << glGetError() << std::endl;
+	// while (!glfwWindowShouldClose(this->_win_ptr))
+	// {
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glfwPollEvents();
+		std::cout << glGetError() << std::endl;
 		glUseProgram(this->_programm_shader);
+		glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
+		std::cout << str << std::endl;
+		std::cout << glGetError() << std::endl;
 		glBindVertexArray(this->_vao);
+		std::cout << glGetError() << std::endl;
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
+		std::cout << glGetError() << std::endl;
 		glBindVertexArray(0);
 		cl->update_position_kernel();
 		glfwSwapBuffers(this->_win_ptr);
 		glUseProgram(0);
-	}
+	// }
+	std::cout << glGetError() << std::endl;
 }
 
 //PUBLIC
