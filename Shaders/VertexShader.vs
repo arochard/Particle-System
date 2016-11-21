@@ -5,11 +5,11 @@ layout(location = 1) in vec4 position;
 layout(location = 2) in vec4 color;
 
 out vec4 Color;
-flat out int InstanceID;
+// flat out int InstanceID;
 
 void main()
 {
 	Color = color;
-	gl_position = vec4(coord.xyz + position.xyz, 1.0);
-	InstanceID = gl_InstanceID;
+	gl_Position = vec4(coord.xyz + position.xyz, 1.0);
+	// InstanceID = gl_InstanceID;
 }

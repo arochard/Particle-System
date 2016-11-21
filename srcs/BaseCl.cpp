@@ -33,28 +33,52 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	this->_queue = cl::CommandQueue(this->_context, this->_chosen_device, 0, &err);
 	this->_queue.finish();
 	this->set_kernel_args(nbPart);
+
+	//Debug
+	std::cout << "End opengl interop" << std::endl;
 }
 
-void 		BaseCl::update_position_kernel()
+void 		BaseCl::update_position_kernel(std::vector<float> mouse)
 {
-	glFinish();
+	cl_int 	err;
+
+	try
+	{
+		glFinish();
+
+		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+		this->_queue.finish();
+
+		err = this->_kernel[UPDATE_KERNEL].setArg(3, sizeof(cl_float2), &mouse);
+
+		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
+		this->_queue.finish();
+
+		this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+		this->_queue.finish();
+	}
+	catch (cl::Error er)
+	{
+		std::cout << er.err() << std::endl;
+		throw Exception(er.what() + er.err());
+	}
+
 }
 
 void		BaseCl::begin_kernel()
 {
 	try
 	{
-	glFinish();
+		glFinish();
 
-	this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
-	this->_queue.finish();
+		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+		this->_queue.finish();
 
-	this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
-	this->_queue.finish();
+		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
+		this->_queue.finish();
 
-	this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
-	std::cout << "srg" << std::endl;
-	// this->_queue.finish();
+		this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
+		this->_queue.finish();
 	}
 	catch (cl::Error er)
 	{
@@ -97,7 +121,6 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	err = this->_kernel[0].setArg(0, this->_cl_vbos[CL_POS_VBO]);
 	err = this->_kernel[0].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);
 	err = this->_kernel[0].setArg(2, this->_cl_velocity);
-	err = this->_kernel[0].setArg(3, sizeof(cl_float2), &mouse);
 	//postition begin
 	err = this->_kernel[1].setArg(0, this->_cl_vbos[CL_POS_VBO]);
 	err = this->_kernel[1].setArg(1, this->_cl_vbos[CL_COLOR_VBO]);

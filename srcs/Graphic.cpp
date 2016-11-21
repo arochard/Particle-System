@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include "../includes/Graphic.hpp"
 #include "../includes/Exception.hpp"
 #include "../includes/utils.hpp"
@@ -13,6 +14,7 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 		0.5f, -0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 		-0.5f, 0.5f, 0.0f,
+
 		0.5f, 0.5f, 0.0f,
 	};
 
@@ -33,7 +35,7 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLubyte) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
 
 	//Enable different attribut
 	//Vertice coord attrib
@@ -62,18 +64,55 @@ void			Graphic::create_shader()
 	std::string		str;
 	const char 		*cstr;
 
+	GLint isCompiled = 0;
+	GLint result = GL_FALSE;
+    int logLength;
+
 std::cout << glGetError() << std::endl;
 	str = read_file("Shaders/VertexShader.vs");
 	cstr = str.c_str();
 	vs = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vs, 1, &(cstr), NULL);
+	glShaderSource(vs, 1, &cstr, NULL);
+
+	glGetShaderiv(vs, GL_COMPILE_STATUS, &isCompiled);
+	if(isCompiled == GL_FALSE)
+	{
+		std::cout << "Vertex Shader Error : " << glGetError() << std::endl;
+	}
+
 	str.clear();
 	glCompileShader(vs);
+
+
+	// Check vertex shader
+    glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
+    std::vector<GLchar> vertShaderError((logLength > 1) ? logLength : 1);
+    glGetShaderInfoLog(vs, logLength, NULL, &vertShaderError[0]);
+    std::cout << &vertShaderError[0] << std::endl;
+
+
 	str = read_file("Shaders/FragmentShader.fs");
 	cstr = str.c_str();
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fs, 1, &(cstr), NULL);
+	glShaderSource(fs, 1, &cstr, NULL);
+
+	glGetShaderiv(fs, GL_COMPILE_STATUS, &isCompiled);
+	if(isCompiled == GL_FALSE)
+	{
+		std::cout << "Fragment Shader Error : " << glGetError() << std::endl;
+	}
+
 	glCompileShader(fs);
+
+	// Check frag shader
+    glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
+    glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
+    std::vector<GLchar> fragShaderError((logLength > 1) ? logLength : 1);
+    glGetShaderInfoLog(vs, logLength, NULL, &fragShaderError[0]);
+    std::cout << &fragShaderError[0] << std::endl;
+
+
 	this->_programm_shader = glCreateProgram();
 	glAttachShader(this->_programm_shader, fs);
 	glAttachShader(this->_programm_shader, vs);
@@ -81,7 +120,6 @@ std::cout << glGetError() << std::endl;
 	glDeleteShader(fs);
 	glLinkProgram(this->_programm_shader);
 	glUseProgram(0);
-	std::cout << glGetError() << std::endl;
 }
 
 void			Graphic::init_window(int width, int height)
@@ -129,29 +167,29 @@ void			Graphic::update_fps_counter()
 
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 {
+	std::vector<double> mouseCoord = {0.0f, 0.0f};
+
+
 	GLsizei 	l;
 	GLchar 		str[2048];
 	std::cout << glGetError() << std::endl;
-	// while (!glfwWindowShouldClose(this->_win_ptr))
-	// {
+	while (!glfwWindowShouldClose(this->_win_ptr))
+	{
+		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
+		std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glfwPollEvents();
-		std::cout << glGetError() << std::endl;
 		glUseProgram(this->_programm_shader);
 		glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
-		std::cout << str << std::endl;
-		std::cout << glGetError() << std::endl;
 		glBindVertexArray(this->_vao);
-		std::cout << glGetError() << std::endl;
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
-		std::cout << glGetError() << std::endl;
 		glBindVertexArray(0);
-		cl->update_position_kernel();
+		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()));
 		glfwSwapBuffers(this->_win_ptr);
 		glUseProgram(0);
-	// }
+	}
 	std::cout << glGetError() << std::endl;
 }
 
