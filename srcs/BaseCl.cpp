@@ -38,7 +38,7 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	std::cout << "End opengl interop" << std::endl;
 }
 
-void 		BaseCl::update_position_kernel(std::vector<float> mouse)
+void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 {
 	cl_int 	err;
 
@@ -50,6 +50,7 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse)
 		this->_queue.finish();
 
 		err = this->_kernel[UPDATE_KERNEL].setArg(3, sizeof(cl_float2), &mouse);
+		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &dt);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -67,6 +68,8 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse)
 
 void		BaseCl::begin_kernel()
 {
+	cl::NDRange range(this->_numPart);
+	// std::cout << range.size() << std::endl;
 	try
 	{
 		glFinish();
@@ -74,7 +77,7 @@ void		BaseCl::begin_kernel()
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
 
-		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
+		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
 
 		this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));

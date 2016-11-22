@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <chrono>
 #include "../includes/Graphic.hpp"
 #include "../includes/Exception.hpp"
 #include "../includes/utils.hpp"
@@ -142,6 +143,7 @@ void			Graphic::init_window(int width, int height)
 	glfwSwapInterval(0);
 	glewInit();
 	glViewport(0, 0, width, height);
+	glfwSwapInterval(0);
 }
 
 void			Graphic::update_fps_counter()
@@ -168,15 +170,18 @@ void			Graphic::update_fps_counter()
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
-
+	auto previous_time = std::chrono::steady_clock::now();
+	std::chrono::duration<float, std::milli> elapsed;
 
 	GLsizei 	l;
 	GLchar 		str[2048];
 	std::cout << glGetError() << std::endl;
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
+		auto current_time = std::chrono::steady_clock::now();
+		elapsed = current_time - previous_time;
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
-		std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
+		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -186,9 +191,11 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 		glBindVertexArray(this->_vao);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
 		glBindVertexArray(0);
-		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()));
+		// std::cout << elapsed.count() << std::endl;
+		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
 		glUseProgram(0);
+		previous_time = current_time;
 	}
 	std::cout << glGetError() << std::endl;
 }

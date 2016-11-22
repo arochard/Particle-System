@@ -40,7 +40,7 @@ class BaseCl
 		~BaseCl();
 
 		void 					create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart);
-		void 					update_position_kernel(std::vector<float> mouse);
+		void 					update_position_kernel(std::vector<float> mouse, float dt);
 		void					begin_kernel();
 	
 };
