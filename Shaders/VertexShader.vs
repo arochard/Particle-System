@@ -10,7 +10,7 @@ out vec4 Color;
 void main()
 {
 	Color = color;
-	gl_Position = position;
-	// gl_Position = vec4(coord.xyz + position.xyz, 1.0);
+	// gl_Position = position;
+	gl_Position = vec4(coord.x + position.x, coord.y + position.y, coord.z + position.z, 1.0);
 	// InstanceID = gl_InstanceID;
 }

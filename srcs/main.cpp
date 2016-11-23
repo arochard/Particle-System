@@ -6,7 +6,7 @@
 
 int					main(int ac, char const *av[])
 {
-	unsigned int	nbPart = 1000000;
+	unsigned int	nbPart = 10000;
 
 	try
 	{

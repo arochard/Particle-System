@@ -15,7 +15,6 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 		0.5f, -0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 		-0.5f, 0.5f, 0.0f,
-
 		0.5f, 0.5f, 0.0f,
 	};
 
@@ -31,12 +30,12 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_STATIC_DRAW);
 	//Color paticle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_STATIC_DRAW);
 
 	//Enable different attribut
 	//Vertice coord attrib
@@ -176,6 +175,8 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 	GLsizei 	l;
 	GLchar 		str[2048];
 	std::cout << glGetError() << std::endl;
+	glBindVertexArray(this->_vao);
+	glUseProgram(this->_programm_shader);
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
@@ -186,17 +187,17 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glfwPollEvents();
-		glUseProgram(this->_programm_shader);
-		glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
-		glBindVertexArray(this->_vao);
+		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
+		// glBindVertexArray(this->_vao);
 		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
-		glBindVertexArray(0);
+		// glBindVertexArray(0);
 		// std::cout << elapsed.count() << std::endl;
-		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
+		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
-		glUseProgram(0);
 		previous_time = current_time;
 	}
+	glUseProgram(0);
+	glBindVertexArray(0);
 	std::cout << glGetError() << std::endl;
 }
 
