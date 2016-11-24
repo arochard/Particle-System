@@ -7,9 +7,9 @@
 
 # include "BaseCl.hpp"
 
-# define VERTICE_VBO 0
-# define POSITION_VBO 1
-# define COLOR_VBO 2
+// # define VERTICE_VBO 0
+# define POSITION_VBO 0
+# define COLOR_VBO 1
 
 class Graphic
 {

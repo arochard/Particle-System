@@ -22,10 +22,10 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glBindVertexArray(this->_vao);
 
 	//Coord vertice, same for all
-	glGenBuffers(1, &tmp);
-	vbos->push_back(tmp);
-	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
+	// glGenBuffers(1, &tmp);
+	// vbos->push_back(tmp);
+	// glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
 	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
@@ -39,9 +39,9 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 	//Enable different attribut
 	//Vertice coord attrib
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	// glEnableVertexAttribArray(0);
+	// glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
+	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	//Position attrib
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
@@ -52,9 +52,9 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0);
 
 	//Attrib divisor
-	glVertexAttribDivisor(0, 0);
-	glVertexAttribDivisor(1, 1);
-	glVertexAttribDivisor(2, 1);
+	// glVertexAttribDivisor(0, 0);
+	// glVertexAttribDivisor(1, 1);
+	// glVertexAttribDivisor(2, 1);
 }
 
 void			Graphic::create_shader()
@@ -177,6 +177,10 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_POINT_SPRITE);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
@@ -185,11 +189,13 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glfwPollEvents();
 		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
 		// glBindVertexArray(this->_vao);
-		glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
+		// glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
+		// glPointSize(20);              //specify size of points in pixels
+		glDrawArrays(GL_POINTS, 0, nbPart);
 		// glBindVertexArray(0);
 		// std::cout << elapsed.count() << std::endl;
 		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());

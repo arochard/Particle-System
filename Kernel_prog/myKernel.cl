@@ -10,6 +10,11 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	float dist = length(p - mouseCoord);
 	float force = GRAV * 1000 * 1000 / (dist * dist);
 
+	if ((i % 10000) == 0)
+	{
+		printf("%f\n", pos[i].x);
+	}
+
 	vel[i] += (force / MASS) * dt;
 	pos[i] += vel[i];
 }
@@ -21,7 +26,7 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	float4 v = vel[i];
 	float4 c = color[i];
 
-	//printf("Pad : %f", pad);
+	//printf("Pad : %f", p.x);
 
 	p = pos[i];
 	v = float4(0.0f);
