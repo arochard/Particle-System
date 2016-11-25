@@ -21,13 +21,14 @@ class Graphic
 		void			init_window(int width, int height);
 		void			create_shader();
 		void 			update_fps_counter();
+
 	public:
 		Graphic(int width, int height);
 		~Graphic();
 
 		void			create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart);
 		void			draw_loop(unsigned int nbPart, BaseCl *cl);
-
+		static void		key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 	
 };
 

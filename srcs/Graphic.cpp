@@ -8,6 +8,11 @@
 
 //PRIVATE
 
+void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+
+}
+
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 {
 	GLuint		tmp;
@@ -187,6 +192,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 		elapsed = current_time - previous_time;
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
+		glfwSetKeyCallback(this->_win_ptr, this->key_callback);
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
