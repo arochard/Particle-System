@@ -27,6 +27,7 @@ class BaseCl
 		cl::CommandQueue 		_queue;
 		cl::Event 				_event;
 		unsigned int			_numPart;
+		int 					_workgroup_size;
 		
 
 		void					platform_select();

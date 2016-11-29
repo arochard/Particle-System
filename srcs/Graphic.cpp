@@ -8,6 +8,17 @@
 
 //PRIVATE
 
+void 			Graphic::send_matrix(glm::mat4 view)
+{
+	GLint 		loc;
+
+	glUseProgram(this->_programm_shader);
+	loc = glGetUniformLocation(this->_programm_shader, "viewMatrix");
+	if (loc < -1)
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
+
+}
+
 void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 
@@ -16,12 +27,12 @@ void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int act
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 {
 	GLuint		tmp;
-	const GLfloat vertex_data[] = {
-		0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f,
-		0.5f, 0.5f, 0.0f,
-	};
+	// const GLfloat vertex_data[] = {
+	// 	0.5f, -0.5f, 0.0f,
+	// 	0.5f, -0.5f, 0.0f,
+	// 	-0.5f, 0.5f, 0.0f,
+	// 	0.5f, 0.5f, 0.0f,
+	// };
 
 	glGenVertexArrays(1, &(this->_vao));
 	glBindVertexArray(this->_vao);
@@ -35,12 +46,12 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
 	//Color paticle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
 
 	//Enable different attribut
 	//Vertice coord attrib
@@ -48,13 +59,13 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	// glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
 	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	//Position attrib
-	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	//Color attrib
-	glEnableVertexAttribArray(2);
+	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (void*)0);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
 	//Attrib divisor
 	// glVertexAttribDivisor(0, 0);
@@ -171,7 +182,7 @@ void			Graphic::update_fps_counter()
 }
 
 
-void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
+void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, glm::mat4 view)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
 	auto previous_time = std::chrono::steady_clock::now();
@@ -182,29 +193,30 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl)
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SPRITE);
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
 		elapsed = current_time - previous_time;
+		send_matrix(view);
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		glfwSetKeyCallback(this->_win_ptr, this->key_callback);
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glfwPollEvents();
 		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
-		// glBindVertexArray(this->_vao);
+		glBindVertexArray(this->_vao);
 		// glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
 		// glPointSize(20);              //specify size of points in pixels
 		glDrawArrays(GL_POINTS, 0, nbPart);
 		// glBindVertexArray(0);
 		// std::cout << elapsed.count() << std::endl;
-		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
+		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
 		previous_time = current_time;
 	}

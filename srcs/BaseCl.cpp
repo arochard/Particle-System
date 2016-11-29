@@ -27,8 +27,8 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glFinish();
 	//Debug
 	std::cout << "Opengl interop" << std::endl;
-	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[POSITION_VBO], &err));
-	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE, (*vbos)[COLOR_VBO], &err));
+	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[POSITION_VBO], &err));
+	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[COLOR_VBO], &err));
 	this->_cl_velocity = cl::Buffer(this->_context, CL_MEM_READ_WRITE, 4 * sizeof(float) * nbPart, NULL, &err);
 	this->_queue = cl::CommandQueue(this->_context, this->_chosen_device, 0, &err);
 	this->_queue.finish();
@@ -48,10 +48,10 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
 
-		err = this->_kernel[UPDATE_KERNEL].setArg(3, sizeof(cl_float2), &mouse);
-		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &dt);
+		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float2), &mouse);
+		err = this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &dt);
 
-		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart), cl::NullRange, NULL, &(this->_event));
+		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size))), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
 
 		this->_queue.enqueueReleaseGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
@@ -67,8 +67,7 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 
 void		BaseCl::begin_kernel()
 {
-	cl::NDRange range(this->_numPart);
-	// std::cout << range.size() << std::endl;
+	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
 	try
 	{
 		glFinish();
@@ -122,13 +121,15 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	err = this->_kernel[0].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
 	err = this->_kernel[0].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
 	err = this->_kernel[0].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
+	err = this->_kernel[0].setArg(3, sizeof(cl_int), &nbPart);
 	//postition begin
 	err = this->_kernel[1].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
 	err = this->_kernel[1].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
 	err = this->_kernel[1].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
+	err = this->_kernel[1].setArg(3, sizeof(cl_int), &nbPart);
 
 	std::cout << "Pad : " << pad << std::endl;
-	err = this->_kernel[1].setArg(3, sizeof(float), &pad);
+	err = this->_kernel[1].setArg(4, sizeof(float), &pad);
 	this->_queue.finish();
 }
 
@@ -149,6 +150,7 @@ void		BaseCl::device_select()
 
 	//Debug
 	std::cout << "Using device : " << this->_chosen_device.getInfo<CL_DEVICE_NAME>() << std::endl;
+	this->_workgroup_size = this->_chosen_device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>()[0];
 }
 
 void		BaseCl::platform_select()

@@ -2,7 +2,6 @@
 # define PART_SYSTEM_HPP
 
 
-# include "glm/glm.hpp"
 # include "Graphic.hpp"
 # include "BaseCl.hpp"
 # include "Camera.hpp"
