@@ -8,6 +8,7 @@
 # include "glm/glm.hpp"
 # include "glm/gtc/matrix_transform.hpp"
 # include "glm/gtc/type_ptr.hpp"
+# include "camera.hpp"
 
 // # define VERTICE_VBO 0
 # define POSITION_VBO 0
@@ -23,14 +24,14 @@ class Graphic
 		void			init_window(int width, int height);
 		void			create_shader();
 		void 			update_fps_counter();
-		void 			send_matrix(glm::mat4 view);
+		void 			send_matrix(Camera *camera);
 
 	public:
 		Graphic(int width, int height);
 		~Graphic();
 
 		void			create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart);
-		void			draw_loop(unsigned int nbPart, BaseCl *cl, glm::mat4 view);
+		void			draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera);
 		static void		key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 	
 };

@@ -8,14 +8,17 @@
 
 //PRIVATE
 
-void 			Graphic::send_matrix(glm::mat4 view)
+void 			Graphic::send_matrix(Camera *camera)
 {
 	GLint 		loc;
 
 	glUseProgram(this->_programm_shader);
+	loc = glGetUniformLocation(this->_programm_shader, "projMatrix");
+	if (loc < -1)
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->getProj()));
 	loc = glGetUniformLocation(this->_programm_shader, "viewMatrix");
 	if (loc < -1)
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->getView()));
 
 }
 
@@ -46,12 +49,12 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
 	//Color paticle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
 
 	//Enable different attribut
 	//Vertice coord attrib
@@ -62,11 +65,12 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glDisableVertexAttribArray(0);
 	//Color attrib
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
+	glDisableVertexAttribArray(0);
 	//Attrib divisor
 	// glVertexAttribDivisor(0, 0);
 	// glVertexAttribDivisor(1, 1);
@@ -157,8 +161,7 @@ void			Graphic::init_window(int width, int height)
 	glewExperimental = GL_TRUE;
 	glfwSwapInterval(0);
 	glewInit();
-	glViewport(0, 0, width, height);
-	glfwSwapInterval(0);
+	//glViewport(0, 0, width, height);
 }
 
 void			Graphic::update_fps_counter()
@@ -182,7 +185,7 @@ void			Graphic::update_fps_counter()
 }
 
 
-void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, glm::mat4 view)
+void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
 	auto previous_time = std::chrono::steady_clock::now();
@@ -193,15 +196,15 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, glm::mat4 view)
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
-	// glEnable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_POINT_SPRITE);
-	glEnable(GL_PROGRAM_POINT_SIZE);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_POINT_SPRITE);
+	//glEnable(GL_PROGRAM_POINT_SIZE);
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
 		elapsed = current_time - previous_time;
-		send_matrix(view);
+		send_matrix(camera);
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		glfwSetKeyCallback(this->_win_ptr, this->key_callback);

@@ -1,4 +1,5 @@
 #include <string>
+#include <random>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -48,8 +49,12 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
 
-		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float2), &mouse);
-		err = this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &dt);
+		//DEBUG
+		//std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
+
+		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &mouse[0]);
+		err = this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
+		err = this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &dt);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size))), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -67,12 +72,19 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 
 void		BaseCl::begin_kernel()
 {
+	std::random_device rd;
+	std::mt19937_64 gen(rd());
+	std::uniform_int_distribution<unsigned long> dis;
+	unsigned long seed = dis(gen);
 	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
+
 	try
 	{
 		glFinish();
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
+
+		this->_kernel[1].setArg(5, sizeof(cl_ulong), &seed);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();

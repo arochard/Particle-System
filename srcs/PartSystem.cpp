@@ -19,5 +19,5 @@ void			PartSystem::main_loop()
 {
 	std::cout << "Main loop" << std::endl;
 	this->_base_cl->begin_kernel();
-	this->_graphic->draw_loop(this->_nbPart, this->_base_cl, this->_camera->getView());
+	this->_graphic->draw_loop(this->_nbPart, this->_base_cl, this->_camera);
 }
