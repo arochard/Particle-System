@@ -1,5 +1,5 @@
 __constant float PI2 = M_PI * 2;
-__constant float GRAV = 9.81f;
+__constant float GRAV = -0.0000000981f;
 __constant float MASS = 2;
 __constant float RADIUS = 0.5f;
 
@@ -30,12 +30,12 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	int i = get_global_id(0);
 	//if (i % 100000 == 0)
 		//printf("%f\n", pos[i].x);
-	//float4 p = pos[i];
+	float4 p = pos[i];
 
-	if (i % 100000 == 0)
-	{
-		//printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
-	}
+	//if (i == 100)
+	//{
+	//	printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
+	//}
 
 	if (i < n)
 	{
@@ -53,15 +53,16 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 		//}
 
 		//vel[i] += (force / MASS) * dt;
-		//v.z -= GRAV * dt;
-		//p.z += v.z * dt;
+		
+		p += v.xyz * dt + GRAV/2*(dt*dt);
+		v += GRAV * dt;
 
-		//pos[i].xyz = p;
-		//vel[i] = v;
+		pos[i].xyz = p;
+		vel[i] = v;
 	}
 }
 
-__kernel void position_begin(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float pad, ulong randoms)
+__kernel void position_begin(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, ulong randoms)
 {
 	int i = get_global_id(0);
 
@@ -69,39 +70,44 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
    	//int latitude = i % 16;
 
    	//float sign = -2.0f * (longitude % 2) + 1.0f;
-  	//float phi = i * PI2 / 100;
-   	//float theta = i * PI2 / 100;
+  	float phi = i * PI2 / 100;
+   	float theta = i * PI2 / 100;
 
    	//float x1 = 
    	//float x2 = 
 
 	float4 p;
 	float4 v = float4(0.0f, 1.0f, 0.0f, 0.0f);
-	float4 c = float4(1.0f, 0.0f, 0.0f, 1.0f);
+	float4 c;
 
-	p.x = random(i, randoms, 16);
-	p.y = random(i, randoms, 20);
-	p.z = random(i, randoms, 24);
-	p.w = 1.f;
+	c.x = 0.0f;
+	c.y = 1.0f;
+	c.z = 0.0f;
+	c.w = 1.0f;
 
-	//p.x = RADIUS * cos(theta) * cos(phi);
-	//p.y = RADIUS * cos(theta) * sin(phi);
-	//p.z = RADIUS * sin(theta);
-	//p.w = 1.0f;
+	//p.x = random(i, randoms, 16);
+	//p.y = random(i, randoms, 16);
+	//p.z = random(i, randoms, 16);
+	//p.w = 1.f;
+
+	p.x = RADIUS * cos(theta) * cos(phi);
+	p.y = RADIUS * cos(theta) * sin(phi);
+	p.z = RADIUS * sin(theta);
+	p.w = 1.0f;
 
 	if (i <= n)
 	{
 		pos[i] = p;
 		vel[i] = v;
 		color[i] = c;
-		//printf("%f %f %f\n", color[i].x, color[i].y, color[i].z, color[i].w);
 	}
-	if (i % 10000 == 0)
-	{
-		//printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
+	//if (i % 100000 == 0 && i <= n)
+	//{
+	//	printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
+	//	printf("%f %f %f %f\n", color[i].x, color[i].y, color[i].z, color[i].w);
 		//printf("i : %d  n : %d\n", i, n);
-		printf("%f %f %f\n", p.x, p.y, p.z);
-	}
+		//printf("%f %f %f\n\n", p.x, p.y, p.z);
+	//}
 
 	//printf("%f %f %f\n", pos[i].x, pos[i].y, pos[i].z);
 }

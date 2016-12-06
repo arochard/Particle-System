@@ -84,7 +84,7 @@ void		BaseCl::begin_kernel()
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
 
-		this->_kernel[1].setArg(5, sizeof(cl_ulong), &seed);
+		this->_kernel[1].setArg(4, sizeof(cl_ulong), &seed);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -140,8 +140,8 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	err = this->_kernel[1].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
 	err = this->_kernel[1].setArg(3, sizeof(cl_int), &nbPart);
 
-	std::cout << "Pad : " << pad << std::endl;
-	err = this->_kernel[1].setArg(4, sizeof(float), &pad);
+	// std::cout << "Pad : " << pad << std::endl;
+	// err = this->_kernel[1].setArg(4, sizeof(float), &pad);
 	this->_queue.finish();
 }
 
