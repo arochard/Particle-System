@@ -75,7 +75,8 @@ void		BaseCl::begin_kernel()
 	std::random_device rd;
 	std::mt19937_64 gen(rd());
 	std::uniform_int_distribution<unsigned long> dis;
-	unsigned long seed = dis(gen);
+	std::vector<cl_ulong> seed = {dis(gen), dis(gen), dis(gen)};
+	std::cout << "Seed : " << seed[0] << "  " << seed[1] << "  " << seed[2] << std::endl;
 	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
 
 	try
@@ -84,7 +85,9 @@ void		BaseCl::begin_kernel()
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
 
-		this->_kernel[1].setArg(4, sizeof(cl_ulong), &seed);
+		this->_kernel[1].setArg(4, sizeof(cl_ulong), &seed[0]);
+		this->_kernel[1].setArg(5, sizeof(cl_ulong), &seed[1]);
+		this->_kernel[1].setArg(6, sizeof(cl_ulong), &seed[2]);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();

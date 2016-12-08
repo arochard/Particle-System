@@ -197,6 +197,9 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
+	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 	// glEnable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	// glEnable(GL_POINT_SPRITE);
@@ -222,7 +225,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		// glBindVertexArray(0);
 		// glBindVertexArray(0);
 		// std::cout << elapsed.count() << std::endl;
-		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
+		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
 		previous_time = current_time;
 	}
