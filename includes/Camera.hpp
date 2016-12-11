@@ -7,8 +7,17 @@
 class Camera
 {
 	private:
+		int 			_width;
+		int 			_height;
+		glm::vec3 		_position;
+		float 			_horizontalAngle;
+		float 			_verticalAngle;
+		float 			_initialFov;
+		float 			_speedMouse;
+		float 			_speed;
 		glm::mat4 		_projMat;
 		glm::mat4 		_viewMat;
+		glm::mat4		_modelMat;
 		glm::mat4 		_mvp;
 
 	public:

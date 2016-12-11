@@ -72,11 +72,6 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 
 void		BaseCl::begin_kernel()
 {
-	std::random_device rd;
-	std::mt19937_64 gen(rd());
-	std::uniform_int_distribution<unsigned long> dis;
-	std::vector<cl_ulong> seed = {dis(gen), dis(gen), dis(gen)};
-	std::cout << "Seed : " << seed[0] << "  " << seed[1] << "  " << seed[2] << std::endl;
 	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
 
 	try
@@ -84,10 +79,6 @@ void		BaseCl::begin_kernel()
 		glFinish();
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
-
-		this->_kernel[1].setArg(4, sizeof(cl_ulong), &seed[0]);
-		this->_kernel[1].setArg(5, sizeof(cl_ulong), &seed[1]);
-		this->_kernel[1].setArg(6, sizeof(cl_ulong), &seed[2]);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -131,6 +122,7 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	cl_int 		err;
 	float		pad = 0.7f / nbPart;
 	std::vector<float> mouse = {0.0f, 0.0f};
+	// float t = -1.0;
 
 	//update position
 	err = this->_kernel[0].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
@@ -142,9 +134,6 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	err = this->_kernel[1].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
 	err = this->_kernel[1].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
 	err = this->_kernel[1].setArg(3, sizeof(cl_int), &nbPart);
-
-	// std::cout << "Pad : " << pad << std::endl;
-	// err = this->_kernel[1].setArg(4, sizeof(float), &pad);
 	this->_queue.finish();
 }
 

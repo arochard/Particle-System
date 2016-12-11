@@ -20,6 +20,7 @@ class Graphic
 		GLuint			_programm_shader;
 		GLuint 			_vao;
 		GLFWwindow		*_win_ptr;
+		Camera			*_camera;
 
 		void			init_window(int width, int height);
 		void			create_shader();
@@ -33,6 +34,7 @@ class Graphic
 		void			create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart);
 		void			draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera);
 		static void		key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+		static void		mouse_callback(GLFWwindow* window, int button, int action, int mods);
 	
 };
 

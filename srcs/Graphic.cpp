@@ -12,6 +12,7 @@ void 			Graphic::send_matrix(Camera *camera)
 {
 	GLint 		loc;
 
+
 	glUseProgram(this->_programm_shader);
 	loc = glGetUniformLocation(this->_programm_shader, "MVP");
 	if (loc < -1)
@@ -19,29 +20,33 @@ void 			Graphic::send_matrix(Camera *camera)
 
 }
 
+void		mouse_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+		this->camera->setMouseCam(window);
+}
+
 void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
-
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+		exit(0);
+	if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS))
+		;
+	if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS))
+		;
+	if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS))
+		;
+	if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
+		;
 }
 
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 {
 	GLuint		tmp;
-	// const GLfloat vertex_data[] = {
-	// 	0.5f, -0.5f, 0.0f,
-	// 	0.5f, -0.5f, 0.0f,
-	// 	-0.5f, 0.5f, 0.0f,
-	// 	0.5f, 0.5f, 0.0f,
-	// };
 
 	glGenVertexArrays(1, &(this->_vao));
 	glBindVertexArray(this->_vao);
 
-	//Coord vertice, same for all
-	// glGenBuffers(1, &tmp);
-	// vbos->push_back(tmp);
-	// glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data, GL_STATIC_DRAW);
 	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
@@ -56,24 +61,11 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
-
-	//Enable different attribut
-	//Vertice coord attrib
-	// glEnableVertexAttribArray(0);
-	// glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[VERTICE_VBO]);
-	// glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	//Position attrib
-	
-	// glDisableVertexAttribArray(0);
 	//Color attrib
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
 	// glDisableVertexAttribArray(0);
-	//Attrib divisor
-	// glVertexAttribDivisor(0, 0);
-	// glVertexAttribDivisor(1, 1);
-	// glVertexAttribDivisor(2, 1);
 }
 
 void			Graphic::create_shader()
@@ -83,26 +75,28 @@ void			Graphic::create_shader()
 	std::string		str;
 	const char 		*cstr;
 
+	//DEBUG
 	GLint isCompiled = 0;
 	GLint result = GL_FALSE;
     int logLength;
+	std::cout << glGetError() << std::endl;
 
-std::cout << glGetError() << std::endl;
 	str = read_file("Shaders/VertexShader.vs");
 	cstr = str.c_str();
 	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &cstr, NULL);
 
+	//DEBUG
 	glGetShaderiv(vs, GL_COMPILE_STATUS, &isCompiled);
 	if(isCompiled == GL_FALSE)
 	{
 		std::cout << "Vertex Shader Error : " << glGetError() << std::endl;
 	}
-
+	
 	str.clear();
 	glCompileShader(vs);
 
-
+	//DEBUG
 	// Check vertex shader
     glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
     glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
@@ -116,6 +110,7 @@ std::cout << glGetError() << std::endl;
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &cstr, NULL);
 
+	//DEBUG
 	glGetShaderiv(fs, GL_COMPILE_STATUS, &isCompiled);
 	if(isCompiled == GL_FALSE)
 	{
@@ -124,13 +119,13 @@ std::cout << glGetError() << std::endl;
 
 	glCompileShader(fs);
 
+	//DEBUG
 	// Check frag shader
     glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
     glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
     std::vector<GLchar> fragShaderError((logLength > 1) ? logLength : 1);
     glGetShaderInfoLog(vs, logLength, NULL, &fragShaderError[0]);
     std::cout << &fragShaderError[0] << std::endl;
-
 
 	this->_programm_shader = glCreateProgram();
 	glAttachShader(this->_programm_shader, fs);
@@ -190,10 +185,9 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	auto previous_time = std::chrono::steady_clock::now();
 	std::chrono::duration<float, std::milli> elapsed;
 
-	std::cout << "PART :: " << nbPart << std::endl;
-
 	GLsizei 	l;
 	GLchar 		str[2048];
+	this->_camera = camera;
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
@@ -202,15 +196,16 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	glEnable(GL_CULL_FACE);
 	// glEnable(GL_BLEND);
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	// glEnable(GL_POINT_SPRITE);
-	// glEnable(GL_PROGRAM_POINT_SIZE);
+	glEnable(GL_POINT_SPRITE);
+	glEnable(GL_PROGRAM_POINT_SIZE);
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
 		elapsed = current_time - previous_time;
-		// send_matrix(camera);
+		send_matrix(camera);
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
+		glfwSetMouseButtonCallback(this->_win_ptr, this->mouse_callback);
 		glfwSetKeyCallback(this->_win_ptr, this->key_callback);
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -218,13 +213,8 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glfwPollEvents();
 		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
 		glBindVertexArray(this->_vao);
-		// glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, nbPart);
-		// glPointSize(20);              //specify size of points in pixels
 		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
-		// glBindVertexArray(0);
-		// glBindVertexArray(0);
-		// std::cout << elapsed.count() << std::endl;
 		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
 		previous_time = current_time;
