@@ -6,24 +6,63 @@
 #include "../includes/Exception.hpp"
 #include "../includes/utils.hpp"
 
+
+//TEMPORARY
+
+float 		*createPos(int nb)
+{
+	float v[nb * 4];
+	float *c = v;
+	float r = 0.5;
+
+	float deltaTheta = 3.14 / 100;
+	int ppl = nb / 100;
+	float deltaPhi = (2 * 3.14) / ppl;
+	float theta = 0.0f;
+	float phi = 0.0f;
+
+	for(int ring = 0; ring < 100; ring++){ //move to a new z - offset 
+		theta += deltaTheta;
+		for(int point = 0; point < ppl; point++){ // draw a ring
+	    	phi += deltaPhi;
+		    *c++ = glm::sin(theta) * glm::cos(phi);
+		    *c++ = glm::sin(theta) * glm::sin(phi);
+		    *c++ = glm::cos(theta);
+		    *c++ = 1.0;
+  		}
+	}
+	return (v); 
+}
+
+
 //PRIVATE
 
-void 			Graphic::send_matrix(Camera *camera)
+float 			Graphic::_deltaTime = 0.0f;
+Camera 			*Graphic::_camera_ptr = NULL;
+bool 			Graphic::_button_pressed = false;
+
+void 			Graphic::send_matrix()
 {
 	GLint 		loc;
 
-
 	glUseProgram(this->_programm_shader);
 	loc = glGetUniformLocation(this->_programm_shader, "MVP");
-	if (loc < -1)
-		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(camera->getMVP()));
-
+	if (loc > -1)
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(this->_camera->getMVP()));
 }
 
-void		mouse_callback(GLFWwindow* window, int button, int action, int mods)
+void			Graphic::mouse_callback(GLFWwindow* window, int button, int action, int mods)
 {
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-		this->camera->setMouseCam(window);
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		_button_pressed = true;
+	}
+	else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		_button_pressed = false;
+	}
 }
 
 void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
@@ -31,13 +70,13 @@ void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int act
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		exit(0);
 	if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS))
-		;
+		_camera_ptr->right(_deltaTime);
 	if (key == GLFW_KEY_A && (action == GLFW_REPEAT || action == GLFW_PRESS))
-		;
+		_camera_ptr->left(_deltaTime);
 	if (key == GLFW_KEY_W && (action == GLFW_REPEAT || action == GLFW_PRESS))
-		;
+		_camera_ptr->up(_deltaTime);
 	if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
-		;
+		_camera_ptr->down(_deltaTime);
 }
 
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
@@ -46,6 +85,12 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 	glGenVertexArrays(1, &(this->_vao));
 	glBindVertexArray(this->_vao);
+
+
+	//TEMPORARY
+	// float *v = createPos(nbPart);
+	// for (int i = 0; i < 100; i++)
+	// 	std::cout << v[i] << std::endl;
 
 	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
@@ -166,7 +211,7 @@ void			Graphic::update_fps_counter()
 	double 				elapse_sec = cur_sec - prev_sec;
 	double 				fps;
 
-	if (elapse_sec > 0.15)
+	if (elapse_sec > 0.5)
 	{
 		prev_sec = cur_sec;
 		fps = (double)frame_count / elapse_sec;
@@ -183,11 +228,12 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
 	auto previous_time = std::chrono::steady_clock::now();
-	std::chrono::duration<float, std::milli> elapsed;
+	std::chrono::duration<float> elapsed;
 
 	GLsizei 	l;
 	GLchar 		str[2048];
 	this->_camera = camera;
+	_camera_ptr = this->_camera;
 	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
@@ -198,15 +244,22 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SPRITE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
+	glfwSetMouseButtonCallback(this->_win_ptr, this->mouse_callback);
+	glfwSetKeyCallback(this->_win_ptr, this->key_callback);
+
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
 		auto current_time = std::chrono::steady_clock::now();
-		elapsed = current_time - previous_time;
-		send_matrix(camera);
+		elapsed = previous_time - current_time;
+		// auto previous_time = std::chrono::steady_clock::now();
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
+		if (_button_pressed)
+		{
+			std::cout << "Mouse x : " << mouseCoord[0] << " y : " << mouseCoord[1] << std::endl;
+			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
+		}
+		send_matrix();
 		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
-		glfwSetMouseButtonCallback(this->_win_ptr, this->mouse_callback);
-		glfwSetKeyCallback(this->_win_ptr, this->key_callback);
 		this->update_fps_counter();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -218,7 +271,10 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
 		glfwSwapBuffers(this->_win_ptr);
 		previous_time = current_time;
+		_deltaTime = elapsed.count();
+		std::cout << _deltaTime << std::endl;
 	}
+
 	glUseProgram(0);
 	glBindVertexArray(0);
 	std::cout << glGetError() << std::endl;

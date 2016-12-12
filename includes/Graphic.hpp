@@ -20,12 +20,15 @@ class Graphic
 		GLuint			_programm_shader;
 		GLuint 			_vao;
 		GLFWwindow		*_win_ptr;
-		Camera			*_camera;
+		Camera 			*_camera;
+		static Camera	*_camera_ptr;
+		static float 	_deltaTime;
+		static bool 	_button_pressed;
 
 		void			init_window(int width, int height);
 		void			create_shader();
 		void 			update_fps_counter();
-		void 			send_matrix(Camera *camera);
+		void 			send_matrix();
 
 	public:
 		Graphic(int width, int height);

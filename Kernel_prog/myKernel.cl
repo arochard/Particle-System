@@ -114,7 +114,7 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	{
 		//printf("%f| %f| %f| %f|   %f\n", p.x, p.y, p.z, p.w, costheta);
 	//	printf("%f %f %f %f\n", color[i].x, color[i].y, color[i].z, color[i].w);
-		printf("i : %d  n : %d\n", i, n);
+		//printf("i : %d  n : %d\n", i, n);
 	}
 
 	//printf("%f %f %f\n", pos[i].x, pos[i].y, pos[i].z);
