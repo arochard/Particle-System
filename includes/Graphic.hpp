@@ -21,6 +21,8 @@ class Graphic
 		GLuint 			_vao;
 		GLFWwindow		*_win_ptr;
 		Camera 			*_camera;
+		int 			_width;
+		int 			_height;
 		static Camera	*_camera_ptr;
 		static float 	_deltaTime;
 		static bool 	_button_pressed;

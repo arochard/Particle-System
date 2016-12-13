@@ -15,5 +15,5 @@ void main()
 	vec4 eyepos = MVP * position;
 	gl_Position = vec4(eyepos.xy, -eyepos.z, 1.0);
 	// gl_Position = MVP * position;
-	gl_PointSize = 5.0;
+	gl_PointSize = 1.0;
 }

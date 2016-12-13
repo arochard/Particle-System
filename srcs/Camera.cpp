@@ -1,10 +1,18 @@
+#include <cmath>
 #include "../includes/Camera.hpp"
 
 //PRIVATE
 
 void 				Camera::updateView()
 {
-	glFinish();
+	this->_direction = glm::vec3(cos(this->_verticalAngle) * sin(this->_horizontalAngle),
+							sin(this->_verticalAngle),
+							cos(this->_verticalAngle) * cos(this->_horizontalAngle));
+	this->_right = glm::vec3(sin(this->_horizontalAngle - 3.14f / 2.0f),
+						0,
+						cos(this->_horizontalAngle - 3.14f / 2.0f));
+	this->_up = glm::cross(this->_right, this->_direction);
+	// glFinish();
 	this->_viewMat = glm::lookAt(this->_position, this->_position + this->_direction, this->_up);
 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
 }
@@ -17,12 +25,13 @@ Camera::Camera(int width, int height): _width(width), _height(height)
 	this->_horizontalAngle = 3.14f;
 	this->_verticalAngle = 0.0f;
 	this->_speed = 3.0;
-	this->_speedMouse = 0.5f;
+	this->_speedMouse = 0.005f;
 	this->_position = glm::vec3(0, 0, 0);
-	this->_viewMat = glm::lookAt(glm::vec3(4.0f, 3.0f, 10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	this->_viewMat = glm::lookAt(glm::vec3(4.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->_projMat = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 10.0f);
 	this->_modelMat = glm::mat4(1.0f);
 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
+
 }
 
 Camera::~Camera(){}
@@ -44,15 +53,8 @@ glm::mat4 			Camera::getMVP()
 
 void				Camera::setMouseCam(float deltaTime, double posx, double posy)
 {
-	this->_horizontalAngle += this->_speedMouse * deltaTime * (float)(this->_width - posx);
-	this->_verticalAngle += this->_speedMouse * deltaTime * (float)(this->_height - posy);
-	this->_direction = glm::vec3(glm::cos(this->_verticalAngle) * glm::sin(this->_horizontalAngle),
-							glm::sin(this->_verticalAngle),
-							glm::cos(this->_verticalAngle) * glm::cos(this->_horizontalAngle));
-	this->_right = glm::vec3(glm::sin(this->_horizontalAngle - 3.14f / 2.0f),
-						0,
-						glm::cos(this->_horizontalAngle - 3.14f / 2.0f));
-	this->_up = glm::cross(this->_right, this->_direction);
+	this->_horizontalAngle += this->_speedMouse * deltaTime * (float)(this->_width / 2 - posx);
+	this->_verticalAngle += this->_speedMouse * deltaTime * (float)(this->_height / 2 - posy);
 	this->updateView();
 }
 

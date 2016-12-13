@@ -1,6 +1,7 @@
-__constant float PI2 = M_PI * 2;
-__constant float GRAV = -0.0000000981f;
-//__constant float MASS = 2;
+__constant float PI2 = M_PI * 2.0f;
+__constant float GRAV = -0.000981f;
+__constant float MASS_PART = 50.0f;
+__constant float MASS_CENTER = 100.0f;
 __constant float RADIUS = 0.5f;
 
 //float3 		matrix_mult(__global float* matrix, const float4 *vector)
@@ -15,7 +16,6 @@ __constant float RADIUS = 0.5f;
 //	return (result);
 //}
 
-
 __kernel void update_position(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float mouse_x, float mouse_y , float dt)
 {
 	int i = get_global_id(0);
@@ -26,28 +26,27 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 		//printf("%f\n", pos[i].x);
 	//float4 p = pos[i];
 
-	//if (i == 100)
-	//{
-	//	printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
-	//}
+	if (i % 10000 == 0)
+	{
+		//printf("%f| %f| %f| %f|\n", pos[i].x, pos[i].y, pos[i].z, pos[i].w);
+	}
 
 	float4 v = vel[i];
 	float3 mouseCoord = (float3)(mouse_x, mouse_y, 0.0f);
 	float3 p = pos[i].xyz;
 	float dist = length(p - mouseCoord);
-	//float force = GRAV * MASS * MASS / (dist * dist);
+	float force = GRAV * MASS_CENTER * MASS_PART / (dist * dist);
 
 	if ((i % 10000) == 0)
 	{
-		printf("%f\n", dist);
+		//printf("%f\n", dist);
 	//	printf("%f %f %f\n", color[i].x, color[i].y, color[i].z);
 	//	printf("%f %f %f\n", vel[i].x, vel[i].y, vel[i].z);
 	}
 
 	//vel[i] += (force / MASS) * dt;
-	
-	p += v.xyz * dt + GRAV/2*(dt*dt);
-	v = GRAV * dt;
+	p =  + v.xyz * dt;
+	v += (force / MASS_PART) * dt;
 
 	pos[i].xyz = p;
 	vel[i] = v;
@@ -106,7 +105,7 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	//p.z = 0.0;
 	//p.w = 1.0;
 
-	pos[i] = p;
+	//pos[i] = p;
 	vel[i] = v;
 	color[i] = c;
 

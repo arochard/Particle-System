@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <chrono>
+#include <ratio>
 #include "../includes/Graphic.hpp"
 #include "../includes/Exception.hpp"
 #include "../includes/utils.hpp"
@@ -88,15 +89,15 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 
 	//TEMPORARY
-	// float *v = createPos(nbPart);
-	// for (int i = 0; i < 100; i++)
-	// 	std::cout << v[i] << std::endl;
+	float *v = createPos(nbPart);
+	for (int i = 0; i < 100; i++)
+		std::cout << v[i] << std::endl;
 
 	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, v, GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
@@ -227,21 +228,25 @@ void			Graphic::update_fps_counter()
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
-	auto previous_time = std::chrono::steady_clock::now();
-	std::chrono::duration<float> elapsed;
+	typedef std::chrono::high_resolution_clock Time;
+	auto prev_time = Time::now();
+	auto cur_time = Time::now();
+	std::chrono::duration<double> time_span;
 
+	//DEBUG
 	GLsizei 	l;
 	GLchar 		str[2048];
+	std::cout << glGetError() << std::endl;
+
 	this->_camera = camera;
 	_camera_ptr = this->_camera;
-	std::cout << glGetError() << std::endl;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
-	glEnable(GL_DEPTH_TEST);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-	// glEnable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// glEnable(GL_DEPTH_TEST);
+	// glCullFace(GL_BACK);
+	// glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SPRITE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glfwSetMouseButtonCallback(this->_win_ptr, this->mouse_callback);
@@ -249,8 +254,9 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 
 	while (!glfwWindowShouldClose(this->_win_ptr))
 	{
-		auto current_time = std::chrono::steady_clock::now();
-		elapsed = previous_time - current_time;
+		cur_time = Time::now();
+		time_span = std::chrono::duration_cast<std::chrono::duration<float>>(cur_time - prev_time);
+		prev_time = Time::now();
 		// auto previous_time = std::chrono::steady_clock::now();
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		if (_button_pressed)
@@ -268,10 +274,12 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glBindVertexArray(this->_vao);
 		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
-		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), elapsed.count());
+		mouseCoord[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
+		mouseCoord[1] = (mouseCoord[1] / (this->_height / 2)) - 1.0f;
+		std::cout << mouseCoord[0] << " :: " << mouseCoord[1] << std::endl;
+		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
 		glfwSwapBuffers(this->_win_ptr);
-		previous_time = current_time;
-		_deltaTime = elapsed.count();
+		_deltaTime = time_span.count();
 		std::cout << _deltaTime << std::endl;
 	}
 
@@ -282,7 +290,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 
 //PUBLIC
 
-Graphic::Graphic(int width, int height)
+Graphic::Graphic(int width, int height): _width(width), _height(height)
 {
 	this->init_window(width, height);
 	this->create_shader();
