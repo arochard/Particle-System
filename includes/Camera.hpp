@@ -4,24 +4,36 @@
 # include "glfw3.h"
 # include "glm/glm.hpp"
 # include "glm/gtc/matrix_transform.hpp"
+# include "glm/gtc/quaternion.hpp"
+
+# define PAD 2
 
 class Camera
 {
 	private:
 		int 			_width;
 		int 			_height;
-		glm::vec3 		_position;
-		glm::vec3 		_direction;
-		glm::vec3		_right;
-		glm::vec3 		_up;
-		float 			_horizontalAngle;
-		float 			_verticalAngle;
-		float 			_speedMouse;
-		float 			_speed;
+		// glm::vec3 		_position;
+		// glm::vec3 		_direction;
+		// glm::vec3		_right;
+		// glm::vec3 		_up;
+		// float 			_horizontalAngle;
+		// float 			_verticalAngle;
+		// float 			_speedMouse;
+		// float 			_speed;
 		glm::mat4 		_projMat;
 		glm::mat4 		_viewMat;
 		glm::mat4		_modelMat;
 		glm::mat4 		_mvp;
+
+		glm::quat		camera_quat;
+		float 			key_pitch;
+		float 			key_yaw;
+		float 			key_roll;
+		glm::vec2 		mousePosition;
+		glm::vec3 		eyeVector;
+		float 			_dx;
+		float 			_dz;
 
 		void 			updateView();
 

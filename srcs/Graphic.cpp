@@ -26,9 +26,9 @@ float 		*createPos(int nb)
 		theta += deltaTheta;
 		for(int point = 0; point < ppl; point++){ // draw a ring
 	    	phi += deltaPhi;
-		    *c++ = glm::sin(theta) * glm::cos(phi);
-		    *c++ = glm::sin(theta) * glm::sin(phi);
-		    *c++ = glm::cos(theta);
+		    *c++ = 0.7f * glm::sin(theta) * glm::cos(phi);
+		    *c++ = 0.7f * glm::sin(theta) * glm::sin(phi);
+		    *c++ = 0.7f * glm::cos(theta);
 		    *c++ = 1.0;
   		}
 	}
@@ -242,9 +242,9 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	_camera_ptr = this->_camera;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
-	// glEnable(GL_DEPTH_TEST);
-	// glCullFace(GL_BACK);
-	// glEnable(GL_CULL_FACE);
+	glEnable(GL_DEPTH_TEST);
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SPRITE);
@@ -276,11 +276,11 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glDrawArrays(GL_POINTS, 0, nbPart);
 		mouseCoord[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
 		mouseCoord[1] = (mouseCoord[1] / (this->_height / 2)) - 1.0f;
-		std::cout << mouseCoord[0] << " :: " << mouseCoord[1] << std::endl;
+		// std::cout << mouseCoord[0] << " :: " << mouseCoord[1] << std::endl;
 		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
 		glfwSwapBuffers(this->_win_ptr);
 		_deltaTime = time_span.count();
-		std::cout << _deltaTime << std::endl;
+		// std::cout << _deltaTime << std::endl;
 	}
 
 	glUseProgram(0);

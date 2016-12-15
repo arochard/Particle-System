@@ -1,36 +1,54 @@
 #include <cmath>
+#include <iostream>
 #include "../includes/Camera.hpp"
 
 //PRIVATE
 
-void 				Camera::updateView()
+// void 				Camera::updateView()
+// {
+// 	this->_direction = glm::vec3(cos(this->_verticalAngle) * sin(this->_horizontalAngle),
+// 							sin(this->_verticalAngle),
+// 							cos(this->_verticalAngle) * cos(this->_horizontalAngle));
+// 	this->_right = glm::vec3(sin(this->_horizontalAngle - 3.14f / 2.0f),
+// 						0,
+// 						cos(this->_horizontalAngle - 3.14f / 2.0f));
+// 	this->_up = glm::cross(this->_right, this->_direction);
+// 	// glFinish();
+// 	this->_viewMat = glm::lookAt(this->_position, this->_position + this->_direction, this->_up);
+// 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
+// }
+
+void				Camera::updateView()
 {
-	this->_direction = glm::vec3(cos(this->_verticalAngle) * sin(this->_horizontalAngle),
-							sin(this->_verticalAngle),
-							cos(this->_verticalAngle) * cos(this->_horizontalAngle));
-	this->_right = glm::vec3(sin(this->_horizontalAngle - 3.14f / 2.0f),
-						0,
-						cos(this->_horizontalAngle - 3.14f / 2.0f));
-	this->_up = glm::cross(this->_right, this->_direction);
-	// glFinish();
-	this->_viewMat = glm::lookAt(this->_position, this->_position + this->_direction, this->_up);
+	glm::vec3 forward(this->_viewMat[0][2], this->_viewMat[1][2], this->_viewMat[2][2]);
+	glm::vec3 strafe( this->_viewMat[0][0], this->_viewMat[1][0], this->_viewMat[2][0]);
+	const float speed = 0.05f;
+	eyeVector += (-_dz * forward + _dx * strafe) * speed;
+	_dz = _dx = 0;
+	glm::quat key_quat = glm::quat(glm::vec3(key_pitch, key_yaw, key_roll));
+	key_pitch = key_yaw = key_roll = 0;
+	camera_quat = key_quat * camera_quat;
+	camera_quat = glm::normalize(camera_quat);
+	glm::mat4 rotate = glm::mat4_cast(camera_quat);
+	glm::mat4 translate = glm::mat4(1.0f);
+	translate = glm::translate(translate, -(this->eyeVector));
+	this->_viewMat = rotate * translate;
 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
+	std::cout << eyeVector.x << " :: " << eyeVector.y << " :: " << eyeVector.z << std::endl;
 }
 
 
 //PUBLIC
 Camera::Camera(int width, int height): _width(width), _height(height)
 {
-	this->_position = glm::vec3(0, 0, 0.5);
-	this->_horizontalAngle = 3.14f;
-	this->_verticalAngle = 0.0f;
-	this->_speed = 3.0;
-	this->_speedMouse = 0.005f;
-	this->_position = glm::vec3(0, 0, 0);
 	this->_viewMat = glm::lookAt(glm::vec3(4.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	this->_projMat = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 10.0f);
+	this->_projMat = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
 	this->_modelMat = glm::mat4(1.0f);
+	this->mousePosition = glm::vec2(0, 0);
+	this->camera_quat = glm::quat(glm::vec3(0, 0, 5));
+	_dz = _dx = key_pitch = key_yaw = key_roll = 0;
 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
+	this->updateView();
 
 }
 
@@ -53,31 +71,35 @@ glm::mat4 			Camera::getMVP()
 
 void				Camera::setMouseCam(float deltaTime, double posx, double posy)
 {
-	this->_horizontalAngle += this->_speedMouse * deltaTime * (float)(this->_width / 2 - posx);
-	this->_verticalAngle += this->_speedMouse * deltaTime * (float)(this->_height / 2 - posy);
+	glm::vec2 mouse_delta = glm::vec2(posx, posy) - mousePosition;
+	const float mouseX_Sensitivity = 0.30f;
+	const float mouseY_Sensitivity = 0.30f;
+	key_yaw   = mouseX_Sensitivity * mouse_delta.x * deltaTime;
+	key_pitch = mouseY_Sensitivity * mouse_delta.y * deltaTime;
+	mousePosition = glm::vec2(posx, posy);
 	this->updateView();
 }
 
 void 				Camera::up(float deltaTime)
 {
-	this->_position += this->_direction * deltaTime * this->_speed;
+	this->_dz = PAD;
 	this->updateView();
 }
 
 void 				Camera::down(float deltaTime)
 {
-	this->_position -= this->_direction * deltaTime * this->_speed;
+	this->_dz = -PAD;
 	this->updateView();
 }
 
 void 				Camera::right(float deltaTime)
 {
-	this->_position += this->_right * deltaTime * this->_speed;
+	this->_dx = PAD;
 	this->updateView();
 }
 
 void 				Camera::left(float deltaTime)
 {
-	this->_position -= this->_right * deltaTime * this->_speed;
+	this->_dx = -PAD;
 	this->updateView();
 }
