@@ -14,9 +14,13 @@
 # define POSITION_VBO 0
 # define COLOR_VBO 1
 
+# define SPHERE 1
+# define CUBE 2
+
 class Graphic
 {
 	private:
+		unsigned int 	_begin_form;
 		GLuint			_programm_shader;
 		GLuint 			_vao;
 		GLFWwindow		*_win_ptr;

@@ -7,35 +7,6 @@
 #include "../includes/Exception.hpp"
 #include "../includes/utils.hpp"
 
-
-//TEMPORARY
-
-float 		*createPos(int nb)
-{
-	float v[nb * 4];
-	float *c = v;
-	float r = 0.5;
-
-	float deltaTheta = 3.14 / 100;
-	int ppl = nb / 100;
-	float deltaPhi = (2 * 3.14) / ppl;
-	float theta = 0.0f;
-	float phi = 0.0f;
-
-	for(int ring = 0; ring < 100; ring++){ //move to a new z - offset 
-		theta += deltaTheta;
-		for(int point = 0; point < ppl; point++){ // draw a ring
-	    	phi += deltaPhi;
-		    *c++ = 0.7f * glm::sin(theta) * glm::cos(phi);
-		    *c++ = 0.7f * glm::sin(theta) * glm::sin(phi);
-		    *c++ = 0.7f * glm::cos(theta);
-		    *c++ = 1.0;
-  		}
-	}
-	return (v); 
-}
-
-
 //PRIVATE
 
 float 			Graphic::_deltaTime = 0.0f;
@@ -87,17 +58,11 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glGenVertexArrays(1, &(this->_vao));
 	glBindVertexArray(this->_vao);
 
-
-	//TEMPORARY
-	float *v = createPos(nbPart);
-	for (int i = 0; i < 100; i++)
-		std::cout << v[i] << std::endl;
-
 	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, v, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
@@ -111,7 +76,6 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	// glDisableVertexAttribArray(0);
 }
 
 void			Graphic::create_shader()
@@ -261,7 +225,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		if (_button_pressed)
 		{
-			std::cout << "Mouse x : " << mouseCoord[0] << " y : " << mouseCoord[1] << std::endl;
+			// std::cout << "Mouse x : " << mouseCoord[0] << " y : " << mouseCoord[1] << std::endl;
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
 		}
 		send_matrix();
@@ -277,7 +241,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		mouseCoord[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
 		mouseCoord[1] = (mouseCoord[1] / (this->_height / 2)) - 1.0f;
 		// std::cout << mouseCoord[0] << " :: " << mouseCoord[1] << std::endl;
-		// cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
+		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
 		glfwSwapBuffers(this->_win_ptr);
 		_deltaTime = time_span.count();
 		// std::cout << _deltaTime << std::endl;
@@ -292,6 +256,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 
 Graphic::Graphic(int width, int height): _width(width), _height(height)
 {
+	this->_begin_form = 0;
 	this->init_window(width, height);
 	this->create_shader();
 }

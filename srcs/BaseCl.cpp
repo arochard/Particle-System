@@ -41,8 +41,6 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 {
-	cl_int 	err;
-
 	try
 	{
 		glFinish();
@@ -52,9 +50,9 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 		//DEBUG
 		//std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
 
-		err = this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &mouse[0]);
-		err = this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
-		err = this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &dt);
+		this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &mouse[0]);
+		this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
+		this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &dt);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size))), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -70,7 +68,7 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 
 }
 
-void		BaseCl::begin_kernel()
+void		BaseCl::begin_kernel(unsigned int type)
 {
 	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
 
@@ -79,6 +77,8 @@ void		BaseCl::begin_kernel()
 		glFinish();
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
+
+		this->_kernel[BEGIN_KERNEL].setArg(4, sizeof(cl_uint), &type);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -125,15 +125,15 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	// float t = -1.0;
 
 	//update position
-	err = this->_kernel[0].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
-	err = this->_kernel[0].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
-	err = this->_kernel[0].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
-	err = this->_kernel[0].setArg(3, sizeof(cl_int), &nbPart);
+	err = this->_kernel[UPDATE_KERNEL].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
+	err = this->_kernel[UPDATE_KERNEL].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
+	err = this->_kernel[UPDATE_KERNEL].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
+	err = this->_kernel[UPDATE_KERNEL].setArg(3, sizeof(cl_int), &nbPart);
 	//postition begin
-	err = this->_kernel[1].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
-	err = this->_kernel[1].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
-	err = this->_kernel[1].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
-	err = this->_kernel[1].setArg(3, sizeof(cl_int), &nbPart);
+	err = this->_kernel[BEGIN_KERNEL].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));
+	err = this->_kernel[BEGIN_KERNEL].setArg(1, sizeof(cl_mem), &(this->_cl_vbos[CL_COLOR_VBO]));
+	err = this->_kernel[BEGIN_KERNEL].setArg(2, sizeof(cl_mem), &(this->_cl_velocity));
+	err = this->_kernel[BEGIN_KERNEL].setArg(3, sizeof(cl_int), &nbPart);
 	this->_queue.finish();
 }
 
@@ -187,8 +187,8 @@ void		BaseCl::program_create()
 		cl_int err;
 		this->_program = cl::Program(this->_context, sources);
 		this->_program.build(device_vector, "-cl-std=CL1.2");
-		this->_kernel[0] = cl::Kernel(this->_program, "update_position", &err);
-		this->_kernel[1] = cl::Kernel(this->_program, "position_begin", &err);
+		this->_kernel[UPDATE_KERNEL] = cl::Kernel(this->_program, "update_position", &err);
+		this->_kernel[BEGIN_KERNEL] = cl::Kernel(this->_program, "position_begin", &err);
 		//DEBUG
 		std::cout << this->_kernel[1].getInfo<CL_KERNEL_REFERENCE_COUNT>() << std::endl;
 	}

@@ -1,4 +1,6 @@
 #version 400
+# define SPHERE = 1;
+# define CUBE = 2;
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in lowp vec4 color;
@@ -7,13 +9,9 @@ uniform mat4 MVP;
 
 out vec4 Color;
 
-void main()
+void 		main()
 {
-	//if (position.x == 0.0 && position.y == 0.0)
-	//	Color = vec4(1.0, 0.0, 0.0, 1.0);
-	Color = color;
-	//vec4 eyepos = MVP * position;
-	// gl_Position = vec4(eyepos.xy, -eyepos.z, 1.0);
 	gl_Position = MVP * position;
+	Color = color;
 	gl_PointSize = 1.0;
 }

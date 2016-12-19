@@ -4,20 +4,6 @@
 
 //PRIVATE
 
-// void 				Camera::updateView()
-// {
-// 	this->_direction = glm::vec3(cos(this->_verticalAngle) * sin(this->_horizontalAngle),
-// 							sin(this->_verticalAngle),
-// 							cos(this->_verticalAngle) * cos(this->_horizontalAngle));
-// 	this->_right = glm::vec3(sin(this->_horizontalAngle - 3.14f / 2.0f),
-// 						0,
-// 						cos(this->_horizontalAngle - 3.14f / 2.0f));
-// 	this->_up = glm::cross(this->_right, this->_direction);
-// 	// glFinish();
-// 	this->_viewMat = glm::lookAt(this->_position, this->_position + this->_direction, this->_up);
-// 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
-// }
-
 void				Camera::updateView()
 {
 	glm::vec3 forward(this->_viewMat[0][2], this->_viewMat[1][2], this->_viewMat[2][2]);
@@ -34,7 +20,7 @@ void				Camera::updateView()
 	translate = glm::translate(translate, -(this->eyeVector));
 	this->_viewMat = rotate * translate;
 	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
-	std::cout << eyeVector.x << " :: " << eyeVector.y << " :: " << eyeVector.z << std::endl;
+	// std::cout << eyeVector.x << " :: " << eyeVector.y << " :: " << eyeVector.z << std::endl;
 }
 
 
