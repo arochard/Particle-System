@@ -13,19 +13,10 @@ class Camera
 	private:
 		int 			_width;
 		int 			_height;
-		// glm::vec3 		_position;
-		// glm::vec3 		_direction;
-		// glm::vec3		_right;
-		// glm::vec3 		_up;
-		// float 			_horizontalAngle;
-		// float 			_verticalAngle;
-		// float 			_speedMouse;
-		// float 			_speed;
 		glm::mat4 		_projMat;
 		glm::mat4 		_viewMat;
 		glm::mat4		_modelMat;
 		glm::mat4 		_mvp;
-
 		glm::quat		camera_quat;
 		float 			key_pitch;
 		float 			key_yaw;
@@ -35,7 +26,7 @@ class Camera
 		float 			_dx;
 		float 			_dz;
 
-		void 			updateView();
+		void 			updateView(float deltaTime);
 
 	public:
 		Camera(int width, int height);

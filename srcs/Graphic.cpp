@@ -221,30 +221,22 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		cur_time = Time::now();
 		time_span = std::chrono::duration_cast<std::chrono::duration<float>>(cur_time - prev_time);
 		prev_time = Time::now();
-		// auto previous_time = std::chrono::steady_clock::now();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glfwPollEvents();
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		if (_button_pressed)
-		{
-			// std::cout << "Mouse x : " << mouseCoord[0] << " y : " << mouseCoord[1] << std::endl;
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
-		}
 		send_matrix();
-		// std::cout << mouseCoord[0] << " " << mouseCoord[1] << std::endl;
 		this->update_fps_counter();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		// glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glfwPollEvents();
 		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
 		glBindVertexArray(this->_vao);
 		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
 		mouseCoord[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
 		mouseCoord[1] = (mouseCoord[1] / (this->_height / 2)) - 1.0f;
-		// std::cout << mouseCoord[0] << " :: " << mouseCoord[1] << std::endl;
 		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
 		glfwSwapBuffers(this->_win_ptr);
 		_deltaTime = time_span.count();
-		// std::cout << _deltaTime << std::endl;
 	}
 
 	glUseProgram(0);
