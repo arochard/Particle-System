@@ -12,6 +12,8 @@
 float 			Graphic::_deltaTime = 0.0f;
 Camera 			*Graphic::_camera_ptr = NULL;
 bool 			Graphic::_button_pressed = false;
+int 			Graphic::_grav_actived = 0;
+
 
 void 			Graphic::send_matrix()
 {
@@ -39,6 +41,7 @@ void			Graphic::mouse_callback(GLFWwindow* window, int button, int action, int m
 
 void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
+	_grav_actived = 0;
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		exit(0);
 	if (key == GLFW_KEY_D && (action == GLFW_REPEAT || action == GLFW_PRESS))
@@ -49,6 +52,8 @@ void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int act
 		_camera_ptr->up(_deltaTime);
 	if (key == GLFW_KEY_S && (action == GLFW_REPEAT || action == GLFW_PRESS))
 		_camera_ptr->down(_deltaTime);
+	if (key == GLFW_KEY_LEFT_CONTROL && (action == GLFW_REPEAT || action == GLFW_PRESS))
+		_grav_actived = 1;
 }
 
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
@@ -85,58 +90,19 @@ void			Graphic::create_shader()
 	std::string		str;
 	const char 		*cstr;
 
-	//DEBUG
-	GLint isCompiled = 0;
-	GLint result = GL_FALSE;
-    int logLength;
-	std::cout << glGetError() << std::endl;
-
 	str = read_file("Shaders/VertexShader.vs");
 	cstr = str.c_str();
 	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &cstr, NULL);
-
-	//DEBUG
-	glGetShaderiv(vs, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		std::cout << "Vertex Shader Error : " << glGetError() << std::endl;
-	}
-	
 	str.clear();
 	glCompileShader(vs);
-
-	//DEBUG
-	// Check vertex shader
-    glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
-    glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
-    std::vector<GLchar> vertShaderError((logLength > 1) ? logLength : 1);
-    glGetShaderInfoLog(vs, logLength, NULL, &vertShaderError[0]);
-    std::cout << &vertShaderError[0] << std::endl;
-
 
 	str = read_file("Shaders/FragmentShader.fs");
 	cstr = str.c_str();
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &cstr, NULL);
-
-	//DEBUG
-	glGetShaderiv(fs, GL_COMPILE_STATUS, &isCompiled);
-	if(isCompiled == GL_FALSE)
-	{
-		std::cout << "Fragment Shader Error : " << glGetError() << std::endl;
-	}
-
 	glCompileShader(fs);
-
-	//DEBUG
-	// Check frag shader
-    glGetShaderiv(vs, GL_COMPILE_STATUS, &result);
-    glGetShaderiv(vs, GL_INFO_LOG_LENGTH, &logLength);
-    std::vector<GLchar> fragShaderError((logLength > 1) ? logLength : 1);
-    glGetShaderInfoLog(vs, logLength, NULL, &fragShaderError[0]);
-    std::cout << &fragShaderError[0] << std::endl;
-
+	
 	this->_programm_shader = glCreateProgram();
 	glAttachShader(this->_programm_shader, fs);
 	glAttachShader(this->_programm_shader, vs);
@@ -192,15 +158,12 @@ void			Graphic::update_fps_counter()
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
+	std::vector<double> mouseCoordGrav = {0.0f, 0.0f};
 	typedef std::chrono::high_resolution_clock Time;
 	auto prev_time = Time::now();
 	auto cur_time = Time::now();
 	std::chrono::duration<double> time_span;
-
-	//DEBUG
-	GLsizei 	l;
-	GLchar 		str[2048];
-	std::cout << glGetError() << std::endl;
+	int grav 		= 0;
 
 	this->_camera = camera;
 	_camera_ptr = this->_camera;
@@ -226,15 +189,18 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
 		if (_button_pressed)
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
+		else if (_grav_actived)
+		{
+			mouseCoordGrav[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
+			mouseCoordGrav[1] = -((mouseCoord[1] / (this->_height / 2)) - 1.0f);
+			grav = 1;
+		}
 		send_matrix();
 		this->update_fps_counter();
-		// glGetProgramInfoLog(this->_programm_shader, 2048, &l, str);
 		glBindVertexArray(this->_vao);
 		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
-		mouseCoord[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
-		mouseCoord[1] = (mouseCoord[1] / (this->_height / 2)) - 1.0f;
-		cl->update_position_kernel(std::vector<float>(mouseCoord.begin(), mouseCoord.end()), time_span.count());
+		cl->update_position_kernel(std::vector<float>(mouseCoordGrav.begin(), mouseCoordGrav.end()), time_span.count(), grav);
 		glfwSwapBuffers(this->_win_ptr);
 		_deltaTime = time_span.count();
 	}

@@ -39,7 +39,7 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	std::cout << "End opengl interop" << std::endl;
 }
 
-void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
+void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int grav)
 {
 	try
 	{
@@ -53,6 +53,8 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt)
 		this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &mouse[0]);
 		this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
 		this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &dt);
+		this->_kernel[UPDATE_KERNEL].setArg(7, sizeof(int), &grav);
+		this->_kernel[UPDATE_KERNEL].setArg(8, 2048, NULL);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size))), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -154,7 +156,10 @@ void		BaseCl::device_select()
 
 	//Debug
 	std::cout << "Using device : " << this->_chosen_device.getInfo<CL_DEVICE_NAME>() << std::endl;
+	std::cout << "Local mem size : " << this->_chosen_device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() << std::endl;
+
 	this->_workgroup_size = this->_chosen_device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>()[0];
+
 }
 
 void		BaseCl::platform_select()

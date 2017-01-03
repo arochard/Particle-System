@@ -30,6 +30,7 @@ class Graphic
 		static Camera	*_camera_ptr;
 		static float 	_deltaTime;
 		static bool 	_button_pressed;
+		static int 		_grav_actived;
 
 		void			init_window(int width, int height);
 		void			create_shader();

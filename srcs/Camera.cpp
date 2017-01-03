@@ -29,13 +29,15 @@ void				Camera::updateView(float deltaTime)
 //PUBLIC
 Camera::Camera(int width, int height): _width(width), _height(height)
 {
-	this->_viewMat = glm::lookAt(glm::vec3(4.0f, 3.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	this->_viewMat = glm::lookAt(glm::vec3(4.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	this->_projMat = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 100.0f);
 	this->_modelMat = glm::mat4(1.0f);
 	this->mousePosition = glm::vec2(0, 0);
 	this->camera_quat = glm::quat(glm::vec3(0, 0, 5));
-	_dz = _dx = key_pitch = key_yaw = key_roll = 0;
-	this->_mvp = this->_projMat * this->_viewMat * this->_modelMat;
+	_dz = _dx = 0;
+	key_pitch = 0;
+	key_yaw = 0;
+	key_roll = 0;
 	this->updateView(1.0);
 
 }
@@ -59,6 +61,9 @@ glm::mat4 			Camera::getMVP()
 
 void				Camera::setMouseCam(float deltaTime, double posx, double posy)
 {
+	//DEBUG
+	std::cout << "x : " << posx << " y : " << posy << std::endl;
+
 	glm::vec2 mouse_delta = glm::vec2(posx, posy) - mousePosition;
 	const float mouseX_Sensitivity = 0.40f;
 	const float mouseY_Sensitivity = 0.40f;
