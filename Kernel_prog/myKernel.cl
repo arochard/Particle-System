@@ -7,54 +7,48 @@ __constant float 		ESP = 2.0f;
 __kernel void update_position(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float mouse_x, float mouse_y , float dt, int grav, __local float4* pblock)
 {
 
-	int gti = get_global_id(0);
+	int i = get_global_id(0);
 
-	if (gti >= n || grav == 0)
+	if (i >= n || grav == 0)
 		return ;
-
-	/*
-	//if (i < 10 == 0)
-	//	printf("%f\n", pos[i].x);
-	//float4 p = pos[i];
 
 	float4 mouse = (float4)(mouse_x, mouse_y, 0.0f, 1.0f);
 	float4 v = vel[i];
-
-	if ((i % 10000) == 0)
-	{
-		//printf("%f\n", v.x);
-	//	printf("%f %f %f\n", color[i].x, color[i].y, color[i].z);
-	//	printf("%f %f %f\n", vel[i].x, vel[i].y, vel[i].z);
-	}
-	
 	float4 d = (float4)(0.0f);
 	float rdist;
 	float4 p = pos[i];
-	
-	float4 force;
+	float4 delta = normalize(mouse - p);
+	float len = fast_length(mouse - p);
 
-	d.x = mouse_x - p.x;
-	d.y = mouse_y - p.y;
-	d.z = 0 - p.z;
 
-	rdist = mad(d.x, d.x, mad(d.y, d.y, d.z * d.z));
-	rdist += 0.1f;
+	if (len > 0.05f)
+	{
+		float4 force;
+		d.x = mouse.x - p.x;
+		d.y = mouse.y - p.y;
+		d.z = 0 - p.z;
 
-	float inv = native_rsqrt(rdist);
-	float invCubed = inv * inv * inv;
-	float s = mouse.w * invCubed;
+		rdist = mad(delta.x, delta.x, mad(delta.y, delta.y, delta.z * delta.z));
+		rdist += 0.1f;
 
-	force.x = d.x * s;
-	force.y = d.y * s;
-	force.z = d.z * s;
+		float inv = native_rsqrt(rdist);
+		float invCubed = inv * inv * inv;
+		float s = mouse.w * invCubed;
 
-	v.x += force.x * dt;
-	v.y += force.y * dt;
-	v.z += force.z * dt;
+		//force += d.x * s;
 
-	v.x *= 1.0f;
-	v.y *= 1.0f;
-	v.z *= 1.0f;
+		v += (delta * s) * dt;
+		//v.y += force.y * dt;
+		//v.z += force.z * dt;
+
+		//v.x *= 1.0f;
+		//v.y *= 1.0f;
+		//v.z *= 1.0f;*/
+
+
+		//float inv = 1.0 / sqrt(dott);
+		//float invCube = inv * inv;
+	}
 
 	p.x += v.x * dt;
 	p.y += v.y * dt;
@@ -62,11 +56,11 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 
 	pos[i] = p;
 	vel[i] = v;
-	*/
+	
 
 	//other approch
 
-	const float4 dtl = (float4)(dt,dt,dt,0.0f);
+	/*const float4 dtl = (float4)(dt,dt,dt,0.0f);
 
 	int ti = get_local_id(0);
 	int ng = get_global_size(0);
@@ -97,7 +91,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	v += dtl*a;
 
 	pos[gti] = p;
-	vel[gti] = v;
+	vel[gti] = v;*/
 }
 
 __kernel void position_begin(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, unsigned int type)
@@ -125,6 +119,7 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 		p.y = RADIUS * sin(theta) * sin(phi);
 		p.z = RADIUS * cos(theta);
 		p.w = 1.0f;
+		p = normalize(p);
 	}
 	else if (type == CUBE)
 	{
@@ -132,10 +127,10 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	}
 
 	//DEBUG
-	if (i % 100000 == 0)
+	/*if (i % 100000 == 0)
 	{
 		printf("x : %f y : %f z : %f\n", p.x, p.y, p.z);
-	}
+	}*/
 
 	c.x = 0.0f;
 	c.y = 1.0f;
