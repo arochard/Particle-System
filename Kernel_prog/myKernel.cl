@@ -18,26 +18,36 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	float rdist;
 	float4 p = pos[i];
 	float4 delta = normalize(mouse - p);
+	delta.w = 1.0f;
+	//p.w = 1.0f;
 	float len = fast_length(mouse - p);
+
+	//DEBUG
+	if (i % 100000 == 0)
+	{
+		printf("\nMouse x : %f, y = %f, z = %f, w = %f\n", mouse.x, mouse.y, mouse.z, mouse.w);
+		printf("Pos x : %f, y = %f, z = %f, w = %f \n", p.x, p.y, p.z, p.w);
+		printf("Delta x = %f, y = %f, z = %f, w = %f\n", delta.x, delta.y, delta.z, delta.w);
+	}
 
 
 	if (len > 0.05f)
 	{
-		float4 force;
-		d.x = mouse.x - p.x;
-		d.y = mouse.y - p.y;
-		d.z = 0 - p.z;
+		//float4 force;
+		//d.x = mouse.x - p.x;
+		//d.y = mouse.y - p.y;
+		//d.z = 0 - p.z;
 
 		rdist = mad(delta.x, delta.x, mad(delta.y, delta.y, delta.z * delta.z));
 		rdist += 0.1f;
 
 		float inv = native_rsqrt(rdist);
 		float invCubed = inv * inv * inv;
-		float s = mouse.w * invCubed;
+		//float s = mouse.w * invCubed;
 
 		//force += d.x * s;
 
-		v += (delta * s) * dt;
+		v += (delta * invCubed) * dt;
 		//v.y += force.y * dt;
 		//v.z += force.z * dt;
 
@@ -53,6 +63,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	p.x += v.x * dt;
 	p.y += v.y * dt;
 	p.z += v.z * dt;
+	//p.w = 1.0f;
 
 	pos[i] = p;
 	vel[i] = v;

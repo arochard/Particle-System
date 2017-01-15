@@ -62,7 +62,7 @@ glm::mat4 			Camera::getMVP()
 void				Camera::setMouseCam(float deltaTime, double posx, double posy)
 {
 	//DEBUG
-	std::cout << "x : " << posx << " y : " << posy << std::endl;
+	// std::cout << "x : " << posx << " y : " << posy << std::endl;
 
 	glm::vec2 mouse_delta = glm::vec2(posx, posy) - mousePosition;
 	const float mouseX_Sensitivity = 0.40f;

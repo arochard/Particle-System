@@ -193,6 +193,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		{
 			mouseCoordGrav[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
 			mouseCoordGrav[1] = -((mouseCoord[1] / (this->_height / 2)) - 1.0f);
+			// std::cout << "x : " << mouseCoordGrav[0] << " y : " << mouseCoordGrav[1] << std::endl;
 			grav = 1;
 		}
 		send_matrix();
