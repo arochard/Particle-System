@@ -1,6 +1,4 @@
 #version 400
-# define SPHERE = 1;
-# define CUBE = 2;
 
 layout(location = 0) in vec4 position;
 layout(location = 1) in lowp vec4 color;

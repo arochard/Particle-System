@@ -36,6 +36,7 @@ class Graphic
 		void			create_shader();
 		void 			update_fps_counter();
 		void 			send_matrix();
+		void 			ray_picking(std::vector<double>  &mouse);
 
 	public:
 		Graphic(int width, int height);

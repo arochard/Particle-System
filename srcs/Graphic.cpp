@@ -154,11 +154,27 @@ void			Graphic::update_fps_counter()
 	frame_count++;
 }
 
+void 			Graphic::ray_picking(std::vector<double>  &mouse)
+{
+	mouse[2] = 1.0f;
+	glm::vec4 ray_clip = glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
+	glm::vec4 ray_eye = glm::inverse(this->_camera->getProj()) * ray_clip;
+	ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+
+	glm::vec4 tmp = glm::inverse(this->_camera->getView()) * ray_eye;
+
+	glm::vec3 ray_wor = glm::vec3(tmp.x, tmp.y, tmp.z);
+	ray_wor = glm::normalize(ray_wor);
+
+	mouse[0] = ray_wor.x;
+	mouse[1] = ray_wor.y;
+	mouse[2] = ray_wor.z;
+}
 
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 {
 	std::vector<double> mouseCoord = {0.0f, 0.0f};
-	std::vector<double> mouseCoordGrav = {0.0f, 0.0f};
+	std::vector<double> mouseCoordGrav = {0.0f, 0.0f, 0.0f, 0.0f};
 	typedef std::chrono::high_resolution_clock Time;
 	auto prev_time = Time::now();
 	auto cur_time = Time::now();
@@ -191,9 +207,11 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
 		else if (_grav_actived)
 		{
-			mouseCoordGrav[0] = (mouseCoord[0] / (this->_width / 2)) - 1.0f;
+			mouseCoordGrav[0] = mouseCoord[0] / (this->_width / 2) - 1.0f;
 			mouseCoordGrav[1] = -((mouseCoord[1] / (this->_height / 2)) - 1.0f);
-			// std::cout << "x : " << mouseCoordGrav[0] << " y : " << mouseCoordGrav[1] << std::endl;
+			//DEBUG
+			std::cout << "mx : " << mouseCoordGrav[0] << " my : " << mouseCoordGrav[1] << std::endl;
+			// ray_picking(mouseCoordGrav);
 			grav = 1;
 		}
 		send_matrix();
@@ -201,7 +219,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glBindVertexArray(this->_vao);
 		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
-		cl->update_position_kernel(std::vector<float>(mouseCoordGrav.begin(), mouseCoordGrav.end()), time_span.count(), grav);
+		cl->update_position_kernel(std::vector<float> (mouseCoordGrav.begin(), mouseCoordGrav.end()), time_span.count(), grav);
 		glfwSwapBuffers(this->_win_ptr);
 		_deltaTime = time_span.count();
 	}

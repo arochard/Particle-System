@@ -41,6 +41,8 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int grav)
 {
+	//DEBUG
+	std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
 	try
 	{
 		glFinish();
@@ -54,7 +56,6 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int gr
 		this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
 		this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &dt);
 		this->_kernel[UPDATE_KERNEL].setArg(7, sizeof(int), &grav);
-		this->_kernel[UPDATE_KERNEL].setArg(8, 2048, NULL);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[UPDATE_KERNEL], cl::NullRange, cl::NDRange(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size))), cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
