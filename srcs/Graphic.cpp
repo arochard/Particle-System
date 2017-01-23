@@ -156,19 +156,23 @@ void			Graphic::update_fps_counter()
 
 void 			Graphic::ray_picking(std::vector<double>  &mouse)
 {
-	mouse[2] = 1.0f;
-	glm::vec4 ray_clip = glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
-	glm::vec4 ray_eye = glm::inverse(this->_camera->getProj()) * ray_clip;
-	ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
+	// mouse[2] = 1.0f;
+	// glm::vec4 ray_clip = glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
+	// glm::vec4 ray_eye = glm::inverse(this->_camera->getProj()) * ray_clip;
+	// ray_eye = glm::vec4(ray_eye.x, ray_eye.y, -1.0f, 0.0f);
 
-	glm::vec4 tmp = glm::inverse(this->_camera->getView()) * ray_eye;
+	// glm::vec4 tmp = glm::inverse(this->_camera->getView()) * ray_eye;
 
-	glm::vec3 ray_wor = glm::vec3(tmp.x, tmp.y, tmp.z);
-	ray_wor = glm::normalize(ray_wor);
+	// glm::vec3 ray_wor = glm::vec3(tmp.x, tmp.y, tmp.z);
+	// ray_wor = glm::normalize(ray_wor);
 
-	mouse[0] = ray_wor.x;
-	mouse[1] = ray_wor.y;
-	mouse[2] = ray_wor.z;
+	// mouse[0] = ray_wor.x;
+	// mouse[1] = ray_wor.y;
+	// mouse[2] = ray_wor.z;
+
+	glm::vec4 worldCoordinates = glm::inverse(this->_camera->getProj() * this->_camera->getView()) * glm::vec4(2.0 * mouse[0] / this->_width - 1.0, -2.0 * mouse[1] / this->_height - 1.0, 0, 1.0);
+	mouse[0] = worldCoordinates.x;
+	mouse[1] = worldCoordinates.y;
 }
 
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
@@ -185,11 +189,11 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	_camera_ptr = this->_camera;
 	glBindVertexArray(this->_vao);
 	glUseProgram(this->_programm_shader);
-	glEnable(GL_DEPTH_TEST);
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH);
+	// glCullFace(GL_BACK);
+	// glEnable(GL_CULL_FACE);
+	// glEnable(GL_BLEND);
+	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_POINT_SPRITE);
 	glEnable(GL_PROGRAM_POINT_SIZE);
 	glfwSetMouseButtonCallback(this->_win_ptr, this->mouse_callback);
@@ -207,11 +211,13 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
 		else if (_grav_actived)
 		{
-			mouseCoordGrav[0] = mouseCoord[0] / (this->_width / 2) - 1.0f;
-			mouseCoordGrav[1] = -((mouseCoord[1] / (this->_height / 2)) - 1.0f);
+			mouseCoordGrav[0] = mouseCoord[0];
+			mouseCoordGrav[1] = mouseCoord[1];
 			//DEBUG
 			std::cout << "mx : " << mouseCoordGrav[0] << " my : " << mouseCoordGrav[1] << std::endl;
-			// ray_picking(mouseCoordGrav);
+			ray_picking(mouseCoordGrav);
+			//DEBUG
+			std::cout << "ax : " << mouseCoordGrav[0] << " ay : " << mouseCoordGrav[1] << std::endl;
 			grav = 1;
 		}
 		send_matrix();

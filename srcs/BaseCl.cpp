@@ -42,7 +42,7 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int grav)
 {
 	//DEBUG
-	std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
+	// std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
 	try
 	{
 		glFinish();

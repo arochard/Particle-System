@@ -14,7 +14,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	float4 v = vel[i];
 	float4 p = pos[i];
 	float4 delta = normalize(mouse - p);
-	delta.w = 0.0f;
+	delta.w = 1.0f;
 	float len = fast_length(mouse - p);
 	float4 c = color[i];
 
@@ -31,7 +31,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	if (len > 0.05f)
 	{
 		float rdist = mad(delta.x, delta.x, mad(delta.y, delta.y, delta.z * delta.z));
-		rdist += 0.1f;
+		rdist += 0.09f;
 
 		float inv = native_rsqrt(rdist);
 		float invCubed = inv * inv * inv;
@@ -46,7 +46,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	p.z += v.z * dt;
 
 	//c.x = 1.0f - len;
-	//c.y = 1.0f - (len / 3);
+	//c.y = 1.0f - (len / 2);
 	//c.z = 1.0f - len;
 	c.w = 1.0f;
 
@@ -89,10 +89,10 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	}
 
 	//DEBUG
-	/*if (i % 100000 == 0)
+	if (p.x > 1.0f)
 	{
 		printf("x : %f y : %f z : %f\n", p.x, p.y, p.z);
-	}*/
+	}
 
 	c.x = 0.0f;
 	c.y = 1.0f;
