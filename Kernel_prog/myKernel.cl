@@ -2,7 +2,7 @@ __constant float RADIUS = 0.5f;
 __constant unsigned int	 SPHERE = 1;
 __constant unsigned int	 CUBE = 2;
 
-__kernel void update_position(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float mouse_x, float mouse_y , float dt, int grav)
+__kernel void update_position(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float mouse_x, float mouse_y, float mouse_z, float dt, int grav)
 {
 
 	int i = get_global_id(0);
@@ -10,7 +10,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	if (i >= n || grav == 0)
 		return ;
 
-	float4 mouse = (float4)(mouse_x, mouse_y, 0.0f, 1.0f);
+	float4 mouse = (float4)(mouse_x, mouse_y, mouse_z, 1.0f);
 	float4 v = vel[i];
 	float4 p = pos[i];
 	float4 delta = normalize(mouse - p);

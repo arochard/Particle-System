@@ -170,9 +170,15 @@ void 			Graphic::ray_picking(std::vector<double>  &mouse)
 	// mouse[1] = ray_wor.y;
 	// mouse[2] = ray_wor.z;
 
-	glm::vec4 worldCoordinates = glm::inverse(this->_camera->getProj() * this->_camera->getView()) * glm::vec4(2.0 * mouse[0] / this->_width - 1.0, -2.0 * mouse[1] / this->_height - 1.0, 0, 1.0);
-	mouse[0] = worldCoordinates.x;
-	mouse[1] = worldCoordinates.y;
+	glm::vec4 pos = glm::inverse(this->_camera->getView() * this->_camera->getProj()) * glm::vec4(2.0 * mouse[0] / this->_width - 1.0, -2.0 * mouse[1] / this->_height - 1.0, 0, 1.0);
+	// glm::vec4 worldCoordinates = glm::mat4(this->_camera->getProj() * this->_camera->getView()) * glm::vec4(2.0 * mouse[0] / this->_width - 1.0, -2.0 * mouse[1] / this->_height + 1.0, 0, 1.0);
+	pos.w = 1.0 / pos.w;
+	pos.x *= pos.w;
+	pos.y *= pos.w;
+	pos.z *= pos.w;
+	mouse[0] = pos.x;
+	mouse[1] = pos.y;
+	mouse[2] = pos.z;
 }
 
 void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
