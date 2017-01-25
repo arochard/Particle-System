@@ -45,9 +45,9 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	p.y += v.y * dt;
 	p.z += v.z * dt;
 
-	//c.x = 1.0f - len;
-	//c.y = 1.0f - (len / 2);
-	//c.z = 1.0f - len;
+	c.x = 0.0f + (len / 3);
+	c.y = 1.0f - (len / 3);
+	//c.z = 0.0f + (len / 3);
 	c.w = 1.0f;
 
 	color[i] = c;

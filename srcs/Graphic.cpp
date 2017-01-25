@@ -156,6 +156,10 @@ void			Graphic::update_fps_counter()
 
 void 			Graphic::ray_picking(std::vector<double>  &mouse)
 {
+	mouse[0] = (2.0f * mouse[0]) / this->_width - 1.0f;
+	mouse[1] = 1.0f - (2.0f * mouse[1]) / this->_height;
+	//DEBUG
+	// std::cout << "mx : " << mouse[0] << " my : " << mouse[1] << " mz : " << mouse[2] << std::endl;
 	// mouse[2] = 1.0f;
 	// glm::vec4 ray_clip = glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
 	// glm::vec4 ray_eye = glm::inverse(this->_camera->getProj()) * ray_clip;
@@ -166,15 +170,17 @@ void 			Graphic::ray_picking(std::vector<double>  &mouse)
 	// glm::vec3 ray_wor = glm::vec3(tmp.x, tmp.y, tmp.z);
 	// ray_wor = glm::normalize(ray_wor);
 
-	// mouse[0] = ray_wor.x;
-	// mouse[1] = ray_wor.y;
-	// mouse[2] = ray_wor.z;
-	glm::mat4 v = this->_camera->getView();
-	glm::vec3 camPos = glm::vec3(v[3][0],v[3][1], v[3][2]);
-	//DEBUG
-	std::cout << "camx : " << camPos.x << " camy : " << camPos.y << " camz : " << camPos.z << std::endl;
-	glm::vec4 pos = (glm::inverse(this->_camera->getView()) * this->_camera->getProj()) * glm::vec4((2.0f * (mouse[0] / this->_width)) - 1.0f, 1.0f - (2.0f * (mouse[1] / this->_height)), 1.0f, 1.0f);
-	glm::vec3 dir = glm::normalize(glm::vec3(pos));
+	glm::vec4 ray_wor = this->_camera->getView() * glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
+
+	mouse[0] = ray_wor.x;
+	mouse[1] = ray_wor.y;
+	mouse[2] = ray_wor.z;
+	// glm::mat4 v = this->_camera->getView();
+	// glm::vec3 camPos = glm::vec3(v[3][0],v[3][1], v[3][2]);
+	// //DEBUG
+	// std::cout << "camx : " << camPos.x << " camy : " << camPos.y << " camz : " << camPos.z << std::endl;
+	// glm::vec4 pos = (glm::inverse(this->_camera->getView()) * this->_camera->getProj()) * glm::vec4((2.0f * (mouse[0] / this->_width)) - 1.0f, 1.0f - (2.0f * (mouse[1] / this->_height)), 1.0f, 1.0f);
+	// glm::vec3 dir = glm::normalize(glm::vec3(pos));
 
 	// glm::vec4 worldCoordinates = glm::mat4(this->_camera->getProj() * this->_camera->getView()) * glm::vec4(2.0 * mouse[0] / this->_width - 1.0, -2.0 * mouse[1] / this->_height + 1.0, 0, 1.0);
 	// glm::vec4 pos = this->_camera->getMVP() * glm::vec4((2.0f * (mouse[0] / this->_width)) - 1.0f, 1.0f - (2.0f * (mouse[1] / this->_height)), 0.0f, 1.0f);
@@ -186,11 +192,11 @@ void 			Graphic::ray_picking(std::vector<double>  &mouse)
 	// mouse[1] = pos.y; 
 	// mouse[2] = pos.z;
 
-	glm::vec3 rayEnd = camPos + dir * -camPos.z;
+	// glm::vec3 rayEnd = camPos + dir * -camPos.z;
 
-	mouse[0] = rayEnd.x;
-	mouse[1] = rayEnd.y;
-	mouse[2] = rayEnd.z;
+	// mouse[0] = rayEnd.x;
+	// mouse[1] = rayEnd.y;
+	// mouse[2] = rayEnd.z;
 
 	// mouse[0] = (2.0f * (mouse[0] / this->_width)) - 1.0f;
 	// mouse[1] = 1.0f - (2.0f * (mouse[1] / this->_height));
@@ -234,11 +240,9 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		{
 			mouseCoordGrav[0] = mouseCoord[0];
 			mouseCoordGrav[1] = mouseCoord[1];
-			//DEBUG
-			std::cout << "mx : " << mouseCoordGrav[0] << " my : " << mouseCoordGrav[1] << " mz : " << mouseCoordGrav[2] << std::endl;
 			ray_picking(mouseCoordGrav);
 			//DEBUG
-			std::cout << "ax : " << mouseCoordGrav[0] << " ay : " << mouseCoordGrav[1] << " az : " << mouseCoordGrav[2] << std::endl;
+			// std::cout << "ax : " << mouseCoordGrav[0] << " ay : " << mouseCoordGrav[1] << " az : " << mouseCoordGrav[2] << std::endl;
 			grav = 1;
 		}
 		send_matrix();
