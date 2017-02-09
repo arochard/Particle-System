@@ -19,7 +19,6 @@ int					main(int ac, char const *av[])
 					nbPart = (s[0] - '0') * 100000;
 				else
 					nbPart = (s[0] - '0') * 1000000;
-				std::cout << nbPart << std::endl;
 				PartSystem *ps = new PartSystem(nbPart);
 				ps->main_loop();
 			}

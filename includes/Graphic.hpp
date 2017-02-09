@@ -10,7 +10,6 @@
 # include "glm/gtc/type_ptr.hpp"
 # include "camera.hpp"
 
-// # define VERTICE_VBO 0
 # define POSITION_VBO 0
 # define COLOR_VBO 1
 

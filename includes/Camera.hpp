@@ -11,8 +11,6 @@
 class Camera
 {
 	private:
-		int 			_width;
-		int 			_height;
 		glm::mat4 		_projMat;
 		glm::mat4 		_viewMat;
 		glm::mat4		_modelMat;

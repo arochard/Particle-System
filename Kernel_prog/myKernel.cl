@@ -2,6 +2,16 @@ __constant float RADIUS = 0.5f;
 __constant unsigned int	 SPHERE = 1;
 __constant unsigned int	 CUBE = 2;
 
+
+float rand(uint2 *seed)
+{
+	seed->x = 36969 * (seed->x & 65535) + (seed->x >> 16);
+    seed->y = 18000 * (seed->y & 65535) + (seed->y >> 16);
+	uint result = (seed->x << 16) + seed->y;
+	return (float)result / (float)0xffffffffu;
+}
+
+
 __kernel void update_position(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, float mouse_x, float mouse_y, float mouse_z, float dt, int grav)
 {
 
@@ -49,7 +59,7 @@ __kernel void update_position(__global float4 *pos, __global float4 *color, __gl
 	color[i] = c;
 }
 
-__kernel void position_begin(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, unsigned int type)
+__kernel void position_begin(__global float4 *pos, __global float4 *color, __global float4 *vel, int n, unsigned int type, unsigned int seed)
 {
 	int i = get_global_id(0);
 
@@ -78,13 +88,13 @@ __kernel void position_begin(__global float4 *pos, __global float4 *color, __glo
 	}
 	else if (type == CUBE)
 	{
+		uint2 random = (uint2)(seed * (333 + i), seed / (33 + i));
 
-	}
-
-	//DEBUG
-	if (p.x > 1.0f)
-	{
-		printf("x : %f y : %f z : %f\n", p.x, p.y, p.z);
+		p.x = rand(&random) - RADIUS;
+		p.y = rand(&random) - RADIUS;
+		p.z = rand(&random) - RADIUS;
+		p.w = 1.0f;
+		p = normalize(p);
 	}
 
 	c.x = 0.0f;

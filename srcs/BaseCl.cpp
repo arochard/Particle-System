@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <ctime>
 #include "../includes/Graphic.hpp"
 #include "../includes/BaseCl.hpp"
 #include "../includes/Exception.hpp"
@@ -24,20 +25,13 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	cl_int	err;
 
 	this->_numPart = nbPart;
-
 	glFinish();
-	//Debug
-	std::cout << "Opengl interop" << std::endl;
-	
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[POSITION_VBO], &err));
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[COLOR_VBO], &err));
 	this->_cl_velocity = cl::Buffer(this->_context, CL_MEM_READ_WRITE, 4 * sizeof(float) * nbPart, NULL, &err);
 	this->_queue = cl::CommandQueue(this->_context, this->_chosen_device, 0, &err);
 	this->_queue.finish();
 	this->set_kernel_args(nbPart);
-
-	//Debug
-	std::cout << "End opengl interop" << std::endl;
 }
 
 void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int grav)
@@ -70,6 +64,7 @@ void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int gr
 void		BaseCl::begin_kernel(unsigned int type)
 {
 	cl::NDRange range(this->_numPart + (this->_workgroup_size - (this->_numPart % this->_workgroup_size)));
+	cl_uint seed = static_cast<cl_uint>(time(NULL));
 
 	try
 	{
@@ -78,6 +73,7 @@ void		BaseCl::begin_kernel(unsigned int type)
 		this->_queue.finish();
 
 		this->_kernel[BEGIN_KERNEL].setArg(4, sizeof(cl_uint), &type);
+		this->_kernel[BEGIN_KERNEL].setArg(5, sizeof(cl_uint), &seed);
 
 		this->_queue.enqueueNDRangeKernel(this->_kernel[BEGIN_KERNEL], cl::NullRange, range, cl::NullRange, NULL, &(this->_event));
 		this->_queue.finish();
@@ -119,7 +115,6 @@ void 		BaseCl::create_context(std::vector<cl::Device> *device)
 void		BaseCl::set_kernel_args(unsigned int nbPart)
 {
 	cl_int 		err;
-	float		pad = 0.7f / nbPart;
 	std::vector<float> mouse = {0.0f, 0.0f};
 
 	//update position
@@ -144,16 +139,7 @@ void		BaseCl::device_select()
 	if (devices.size() == 0)
 		throw Exception("No device found");
 
-	//Debug
-	for (auto& dev : devices)
-		std::cout << "Available device : " << dev.getInfo<CL_DEVICE_NAME>() << std::endl;
-
 	this->_chosen_device = devices[0];
-
-	//Debug
-	std::cout << "Using device : " << this->_chosen_device.getInfo<CL_DEVICE_NAME>() << std::endl;
-	std::cout << "Local mem size : " << this->_chosen_device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() << std::endl;
-
 	this->_workgroup_size = this->_chosen_device.getInfo<CL_DEVICE_MAX_WORK_ITEM_SIZES>()[0];
 
 }
@@ -165,15 +151,7 @@ void		BaseCl::platform_select()
 	cl::Platform::get(&platforms);
 	if (platforms.size() == 0)
 		throw Exception("No platforms available");
-
-	//Debug
-	for (auto& plat : platforms)
-		std::cout << "Available platform : " << plat.getInfo<CL_PLATFORM_NAME>() << std::endl;
-
 	this->_chosen_platform = platforms[0];
-
-	//Debug
-	std::cout << "Using platform : " << this->_chosen_platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
 }
 
 void		BaseCl::program_create()
@@ -190,8 +168,6 @@ void		BaseCl::program_create()
 		this->_program.build(device_vector, "-cl-std=CL1.2");
 		this->_kernel[UPDATE_KERNEL] = cl::Kernel(this->_program, "update_position", &err);
 		this->_kernel[BEGIN_KERNEL] = cl::Kernel(this->_program, "position_begin", &err);
-		//DEBUG
-		std::cout << this->_kernel[1].getInfo<CL_KERNEL_REFERENCE_COUNT>() << std::endl;
 	}
 	catch (cl::Error er)
 	{
@@ -199,10 +175,4 @@ void		BaseCl::program_create()
 		std::cerr << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(this->_chosen_device) << std::endl;
 		throw Exception(er.what() + er.err());
 	}
-
-	//Debug
-	std::cout << "Status" << std::endl;
-	std::cout << "Build Status: " << this->_program.getBuildInfo<CL_PROGRAM_BUILD_STATUS>(device_vector[0]) << std::endl;
-	std::cout << "Build Options:\t" << this->_program.getBuildInfo<CL_PROGRAM_BUILD_OPTIONS>(device_vector[0]) << std::endl;
-	std::cout << "Build Log:\t " << this->_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device_vector[0]) << std::endl;
 }
