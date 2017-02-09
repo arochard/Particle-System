@@ -28,6 +28,7 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 	glFinish();
 	//Debug
 	std::cout << "Opengl interop" << std::endl;
+	
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[POSITION_VBO], &err));
 	this->_cl_vbos.push_back(cl::BufferGL(this->_context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, (*vbos)[COLOR_VBO], &err));
 	this->_cl_velocity = cl::Buffer(this->_context, CL_MEM_READ_WRITE, 4 * sizeof(float) * nbPart, NULL, &err);
@@ -41,17 +42,11 @@ void		BaseCl::create_buffer(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 void 		BaseCl::update_position_kernel(std::vector<float> mouse, float dt, int grav)
 {
-	//DEBUG
-	// std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
 	try
 	{
 		glFinish();
 		this->_queue.enqueueAcquireGLObjects(&(this->_cl_vbos), NULL, &(this->_event));
 		this->_queue.finish();
-
-		//DEBUG
-		//std::cout << "x : " << mouse[0] << " y : " << mouse[1] << std::endl;
-
 		this->_kernel[UPDATE_KERNEL].setArg(4, sizeof(cl_float), &mouse[0]);
 		this->_kernel[UPDATE_KERNEL].setArg(5, sizeof(cl_float), &mouse[1]);
 		this->_kernel[UPDATE_KERNEL].setArg(6, sizeof(cl_float), &mouse[2]);
@@ -126,7 +121,6 @@ void		BaseCl::set_kernel_args(unsigned int nbPart)
 	cl_int 		err;
 	float		pad = 0.7f / nbPart;
 	std::vector<float> mouse = {0.0f, 0.0f};
-	// float t = -1.0;
 
 	//update position
 	err = this->_kernel[UPDATE_KERNEL].setArg(0, sizeof(cl_mem), &(this->_cl_vbos[CL_POS_VBO]));

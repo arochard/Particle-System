@@ -13,6 +13,7 @@ float 			Graphic::_deltaTime = 0.0f;
 Camera 			*Graphic::_camera_ptr = NULL;
 bool 			Graphic::_button_pressed = false;
 int 			Graphic::_grav_actived = 0;
+unsigned int 	Graphic::_begin_form = 0;
 
 
 void 			Graphic::send_matrix()
@@ -54,6 +55,10 @@ void 			Graphic::key_callback(GLFWwindow *window, int key, int scancode, int act
 		_camera_ptr->down(_deltaTime);
 	if (key == GLFW_KEY_LEFT_CONTROL && (action == GLFW_REPEAT || action == GLFW_PRESS))
 		_grav_actived = 1;
+	if (key == GLFW_KEY_1 && action == GLFW_PRESS)
+		_begin_form = 1;
+	if (key == GLFW_KEY_2 && action == GLFW_PRESS)
+		_begin_form = 2;
 }
 
 void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
@@ -62,22 +67,17 @@ void			Graphic::create_vbo(std::vector<GLuint> *vbos, unsigned int nbPart)
 
 	glGenVertexArrays(1, &(this->_vao));
 	glBindVertexArray(this->_vao);
-
-	//Position particle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL, GL_DYNAMIC_DRAW);
-
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[POSITION_VBO]);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
-	//Color paticle, different for each object
 	glGenBuffers(1, &tmp);
 	vbos->push_back(tmp);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * nbPart, NULL,  GL_DYNAMIC_DRAW);
-	//Color attrib
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, (*vbos)[COLOR_VBO]);
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -96,13 +96,11 @@ void			Graphic::create_shader()
 	glShaderSource(vs, 1, &cstr, NULL);
 	str.clear();
 	glCompileShader(vs);
-
 	str = read_file("Shaders/FragmentShader.fs");
 	cstr = str.c_str();
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &cstr, NULL);
 	glCompileShader(fs);
-	
 	this->_programm_shader = glCreateProgram();
 	glAttachShader(this->_programm_shader, fs);
 	glAttachShader(this->_programm_shader, vs);
@@ -158,6 +156,7 @@ void 			Graphic::ray_picking(std::vector<double>  &mouse)
 {
 	mouse[0] = (2.0f * mouse[0]) / this->_width - 1.0f;
 	mouse[1] = 1.0f - (2.0f * mouse[1]) / this->_height;
+	mouse[2] = 0.0f;
 	//DEBUG
 	// std::cout << "mx : " << mouse[0] << " my : " << mouse[1] << " mz : " << mouse[2] << std::endl;
 	// mouse[2] = 1.0f;
@@ -170,11 +169,11 @@ void 			Graphic::ray_picking(std::vector<double>  &mouse)
 	// glm::vec3 ray_wor = glm::vec3(tmp.x, tmp.y, tmp.z);
 	// ray_wor = glm::normalize(ray_wor);
 
-	glm::vec4 ray_wor = this->_camera->getView() * glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
+	// glm::vec4 ray_wor = this->_camera->getView() * glm::vec4(mouse[0], mouse[1], -1.0f, 1.0f);
 
-	mouse[0] = ray_wor.x;
-	mouse[1] = ray_wor.y;
-	mouse[2] = ray_wor.z;
+	// mouse[0] = ray_wor.x;
+	// mouse[1] = ray_wor.y;
+	// mouse[2] = ray_wor.z;
 	// glm::mat4 v = this->_camera->getView();
 	// glm::vec3 camPos = glm::vec3(v[3][0],v[3][1], v[3][2]);
 	// //DEBUG
@@ -210,7 +209,7 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 	auto prev_time = Time::now();
 	auto cur_time = Time::now();
 	std::chrono::duration<double> time_span;
-	int grav 		= 0;
+	int grav = 0;
 
 	this->_camera = camera;
 	_camera_ptr = this->_camera;
@@ -234,6 +233,13 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
 		glfwGetCursorPos(this->_win_ptr, &mouseCoord[0], &mouseCoord[1]);
+		if (_begin_form)
+		{
+			cl->begin_kernel(_begin_form);
+			_begin_form = 0;
+			_grav_actived = 0;
+
+		}
 		if (_button_pressed)
 			this->_camera->setMouseCam(_deltaTime, mouseCoord[0], mouseCoord[1]);
 		else if (_grav_actived)
@@ -247,8 +253,6 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 		}
 		send_matrix();
 		this->update_fps_counter();
-		glBindVertexArray(this->_vao);
-		glBindVertexArray(this->_vao);
 		glDrawArrays(GL_POINTS, 0, nbPart);
 		cl->update_position_kernel(std::vector<float> (mouseCoordGrav.begin(), mouseCoordGrav.end()), time_span.count(), grav);
 		glfwSwapBuffers(this->_win_ptr);
@@ -264,7 +268,6 @@ void 			Graphic::draw_loop(unsigned int nbPart, BaseCl *cl, Camera *camera)
 
 Graphic::Graphic(int width, int height): _width(width), _height(height)
 {
-	this->_begin_form = 0;
 	this->init_window(width, height);
 	this->create_shader();
 }

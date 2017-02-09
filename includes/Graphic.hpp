@@ -20,7 +20,6 @@
 class Graphic
 {
 	private:
-		unsigned int 	_begin_form;
 		GLuint			_programm_shader;
 		GLuint 			_vao;
 		GLFWwindow		*_win_ptr;
@@ -31,6 +30,7 @@ class Graphic
 		static float 	_deltaTime;
 		static bool 	_button_pressed;
 		static int 		_grav_actived;
+		static unsigned int 	_begin_form;
 
 		void			init_window(int width, int height);
 		void			create_shader();
